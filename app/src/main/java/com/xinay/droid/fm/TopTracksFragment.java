@@ -15,7 +15,6 @@ import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 import com.xinay.droid.R;
-import com.xinay.droid.fm.async.SpotifyClient;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.TopTracksEvent;
 import com.xinay.droid.fm.model.Album;
@@ -50,7 +49,6 @@ public class TopTracksFragment extends Fragment {
     private String artistName;
     private TopTracksResponse mTracks;
     //private Tracks mTracks;
-    private SpotifyClient mSpotifyClient;
 
     private OnFragmentInteractionListener mListener;
 
@@ -121,7 +119,6 @@ public class TopTracksFragment extends Fragment {
             mListState = savedInstanceState.getParcelable(KEY_TRACKS_LIST);
             mTracks = Parcels.unwrap(mListState);
         }
-        mSpotifyClient = new SpotifyClient();
     }
 
     @Override
@@ -238,48 +235,6 @@ public class TopTracksFragment extends Fragment {
     }
 
     private void getTopTracksByArtist() {
-
         mProgressBar.setVisibility(View.VISIBLE);
-
-//        mSpotifyClient.doTopTracks(artistId);
-
-                /*
-        ServiceHelper.get().topTracks(artistId, Constants.COUNTRY_CODE, new Callback<TopTracksResponse>() {
-            @Override
-            public void success(TopTracksResponse apiResponse, Response response) {
-                Log.v(LOG_TAG, "success");
-
-                int resultsSize = apiResponse.getTracks().size();
-
-                Log.v(LOG_TAG, "tracks size : " + resultsSize);
-
-                mProgressBar.setVisibility(View.GONE);
-
-                if (resultsSize > 0) {
-                    mTracks = new TopTracksResponse();
-                    mTracks.setTracks(apiResponse.getTracks());
-                    for (Track track : mTracks.getTracks()) {
-                        Log.v(LOG_TAG, "track name: " + track.getName());
-                        Album album = track.getAlbum();
-                        for (Image image : album.getImages()) {
-                            Log.v(LOG_TAG, "image url: " + image.getUrl());
-                        }
-                    }
-                    topTracksListAdapter.setTracks(apiResponse.getTracks());
-                    topTracksListAdapter.notifyDataSetChanged();
-                } else {
-                    Toast.makeText(getApplicationContext(), String.format(getResources().getString(R.string.no_tracks_found)), Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.v(LOG_TAG, "failure");
-                mProgressBar.setVisibility(View.GONE);
-                Log.v(LOG_TAG, "error message: " + error.getMessage());
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
-        */
     }
 }

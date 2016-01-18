@@ -20,7 +20,6 @@ import android.widget.Toast;
 import com.squareup.otto.Subscribe;
 import com.xinay.droid.R;
 import com.xinay.droid.fm.async.RadioStationsClient;
-import com.xinay.droid.fm.async.SpotifyClient;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.ArtistSearchEvent;
 import com.xinay.droid.fm.event.TopSongsEvent;
@@ -48,7 +47,6 @@ public class ArtistListFragment extends Fragment {
     private static final String KEY_SONGS_LIST = "songs";
 
     private Artists mArtists;
-    private SpotifyClient mSpotifyClient;
 
     private TopSongsResponse mSongs;
     private RadioStationsClient mRadioClient;
@@ -132,7 +130,6 @@ public class ArtistListFragment extends Fragment {
             mListState = savedInstanceState.getParcelable(KEY_SONGS_LIST);
             mSongs = Parcels.unwrap(mListState);
         }
-        //mSpotifyClient = new SpotifyClient();
         mRadioClient = new RadioStationsClient();
     }
 
@@ -261,8 +258,6 @@ public class ArtistListFragment extends Fragment {
         mProgressBar.setVisibility(View.VISIBLE);
 
         final String theSearchKey = searchKey;
-
-//        mSpotifyClient.doArtistSearch(searchKey);
 
         //RadioStationsClient client = new RadioStationsClient();
         mRadioClient.doTopSongs("Music");

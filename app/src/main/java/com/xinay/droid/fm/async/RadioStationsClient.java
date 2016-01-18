@@ -76,26 +76,11 @@ public class RadioStationsClient {
         );
 
         @GET("/topsongs.php")
-        Call<TopSongsResponse> topSongs(
-                @Query("q") String query,
-                @Query("type") String type
-        );
-
-        @GET("/topsongs.php")
         Call<TopSongsResponse> topSongs(@QueryMap Map<String, String> options);
 
         @GET("/songart.php")
         Call<SongArtResponse> songArt(@QueryMap Map<String, String> options);
 
-        @GET("/songart.php")
-        Call<SongArtResponse> songArt(
-                @Query("artist") String artist,
-                @Query("title") String title,
-                @Query("res") String res
-        );
-
-        //@GET("/")
-        //void searchFlickr(@QueryMap Map<String, String> options, Callback<FlickrResult> cb);
     }
 
     public void doSongArt(String artist, String title, String res) {
