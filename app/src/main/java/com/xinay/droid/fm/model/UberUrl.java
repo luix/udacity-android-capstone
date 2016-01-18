@@ -13,19 +13,19 @@ import java.io.Serializable;
 public class UberUrl implements Serializable {
 
     @SerializedName("url")
-    private String url;
+    String url;
 
     @SerializedName("encoding")
-    private String encoding;
+    String encoding;
 
     @SerializedName("callsign")
-    private String callSign;
+    String callSign;
 
     @SerializedName("websiteurl")
-    private String websiteUrl;
+    String websiteUrl;
 
     @SerializedName("station_id")
-    private int stationId;
+    int stationId;
 
     public String getUrl() {
         return url;
@@ -33,17 +33,5 @@ public class UberUrl implements Serializable {
 
     public String getEncoding() {
         return encoding;
-    }
-
-    public String getCallSign() {
-        return callSign;
-    }
-
-    public String getWebsiteUrl() {
-        return websiteUrl;
-    }
-
-    public int getStationId() {
-        return stationId;
     }
 }

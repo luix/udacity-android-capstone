@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clickable="true"
     android:background="@color/background_material_dark">
+
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true">
 
     <ImageView
         android:id="@+id/album_art"
@@ -12,6 +16,14 @@
         android:layout_height="320dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:id="@+id/play_pause_button"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:src="@android:drawable/ic_media_play" />
 
     <TextView
         android:id="@+id/song_title"
@@ -32,7 +44,7 @@
         android:layout_centerHorizontal="true" />
 
     <TextView
-        android:id="@+id/album_name"
+        android:id="@+id/station_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
@@ -41,3 +53,4 @@
         android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
+</ScrollView>

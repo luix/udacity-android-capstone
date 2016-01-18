@@ -64,15 +64,17 @@ public class PlayerFragment extends DialogFragment {
 //
 //    private Track mTrack;
 //    private String artistName;
-    private TextView mTimeEllapsed;
-    private TextView mTimeDuration;
-    private TextView mSong;
-    private TextView mAlbumName;
+//    private TextView mTimeEllapsed;
+//    private TextView mTimeDuration;
+    private TextView mSongTitle;
+    private TextView mArtistName;
+    private TextView mStationId;
+//    private TextView mAlbumName;
     private ImageView mAlbumCover;
-    private ImageButton mPrevButton;
+//    private ImageButton mPrevButton;
     private ImageButton mPlayPauseButton;
-    private ImageButton mNextButton;
-    private SeekBar mSeekbar = null;
+//    private ImageButton mNextButton;
+//    private SeekBar mSeekbar = null;
 
     private boolean isMovingSeekBar = false;
 
@@ -154,19 +156,22 @@ public class PlayerFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.player_ui_layout, container, false);
+        View rootView = inflater.inflate(R.layout.player_layout, container, false);
 
         // ((TextView) rootView.findViewById(R.id.artist_name)).setText(song.getSongTitle());
 
-        mSong = (TextView) rootView.findViewById(R.id.track_name);
-        mTimeEllapsed = (TextView) rootView.findViewById(R.id.time_ellapsed);
-        mTimeDuration = (TextView) rootView.findViewById(R.id.time_total);
-        mPrevButton = (ImageButton) rootView.findViewById(R.id.prev_button);
+//        mSong = (TextView) rootView.findViewById(R.id.track_name);
+        mSongTitle = (TextView) rootView.findViewById(R.id.song_title);
+//        mTimeEllapsed = (TextView) rootView.findViewById(R.id.time_ellapsed);
+//        mTimeDuration = (TextView) rootView.findViewById(R.id.time_total);
+//        mPrevButton = (ImageButton) rootView.findViewById(R.id.prev_button);
         mPlayPauseButton = (ImageButton) rootView.findViewById(R.id.play_pause_button);
-        mNextButton = (ImageButton) rootView.findViewById(R.id.next_button);
-        mSeekbar = (SeekBar) rootView.findViewById(R.id.seek_bar);
-        mAlbumName = (TextView) rootView.findViewById(R.id.album_name);
-        mAlbumCover = (ImageView) rootView.findViewById(R.id.album_thumbnail);
+//        mNextButton = (ImageButton) rootView.findViewById(R.id.next_button);
+//        mSeekbar = (SeekBar) rootView.findViewById(R.id.seek_bar);
+//        mAlbumName = (TextView) rootView.findViewById(R.id.album_name);
+        mArtistName = (TextView) rootView.findViewById(R.id.artist_name);
+        mStationId = (TextView) rootView.findViewById(R.id.station_id);
+        mAlbumCover = (ImageView) rootView.findViewById(R.id.album_art);
 
         //updateTrackInfo();
 
@@ -176,22 +181,22 @@ public class PlayerFragment extends DialogFragment {
                 playPause();
             }
         });
-        mPrevButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prev();
-            }
-        });
-        mNextButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                skip();
-            }
-        });
-
-        mSeekbar.setOnSeekBarChangeListener(seekBarChanged);
-        mSeekbar.setProgress(0);
-        mSeekbar.setMax(PREVIEW_SONG_DURATION);
+//        mPrevButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                prev();
+//            }
+//        });
+//        mNextButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                skip();
+//            }
+//        });
+//
+//        mSeekbar.setOnSeekBarChangeListener(seekBarChanged);
+//        mSeekbar.setProgress(0);
+//        mSeekbar.setMax(PREVIEW_SONG_DURATION);
 
         return rootView;
     }
@@ -221,14 +226,14 @@ public class PlayerFragment extends DialogFragment {
     private void skip() {
         if (mListener != null) {
             song = mListener.onPlayerNext();
-            updateTrackInfo();
+            //updateTrackInfo();
         }
     }
 
     private void prev() {
         if (mListener != null) {
             song = mListener.onPlayerPrev();
-            updateTrackInfo();
+            //updateTrackInfo();
         }
     }
 
@@ -280,10 +285,10 @@ public class PlayerFragment extends DialogFragment {
 
     }
 
-    private void updateTrackInfo() {
-        mTimeEllapsed.setText("0:00");
-        mTimeDuration.setText("0:30");
-    }
+//    private void updateTrackInfo() {
+//        mTimeEllapsed.setText("0:00");
+//        mTimeDuration.setText("0:30");
+//    }
 
     private SeekBar.OnSeekBarChangeListener seekBarChanged = new SeekBar.OnSeekBarChangeListener() {
         @Override
