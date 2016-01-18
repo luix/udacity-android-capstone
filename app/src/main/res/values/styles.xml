@@ -1,0 +1,93 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+        <item name="actionBarStyle">@style/ActionBar.Solid.Streamer</item>
+    </style>
+
+    <style name="PlayerTheme" parent="AppTheme">
+        <item name="actionBarStyle">@style/ActionBar.Solid.Streamer.NoTitle</item>
+    </style>
+
+    <style name="ActionBar.Solid.Streamer" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="background">@color/pink_500</item>
+    </style>
+
+    <style name="ActionBar.Solid.Streamer.NoTitle" parent="@style/ActionBar.Solid.Streamer">
+        <item name="displayOptions">useLogo|showHome</item>
+    </style>
+
+
+    <style name="NewAppTheme" parent="NewAppTheme.Base">
+    </style>
+    <!-- Base theme applied no matter what API -->
+    <style name="NewAppTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!--If you are using revision 22.1 please use just windowNoTitle. Without android:-->
+        <item name="windowNoTitle">true</item>
+        <!--We will be using the toolbar so no need to show ActionBar-->
+        <item name="windowActionBar">false</item>
+        <!-- Set theme colors from http://www.google.com/design/spec/style/color.html#color-color-palette-->
+        <!-- colorPrimary is used for the default action bar background -->
+        <item name="colorPrimary">#2196F3</item>
+        <!-- colorPrimaryDark is used for the status bar -->
+        <item name="colorPrimaryDark">#1976D2</item>
+        <!-- colorAccent is used as the default value for colorControlActivated
+             which is used to tint widgets -->
+        <item name="colorAccent">#FF4081</item>
+        <!-- You can also set colorControlNormal, colorControlActivated
+            colorControlHighlight and colorSwitchThumbNormal. -->
+    </style>
+
+    <!-- Base application theme. -->
+    <style name="MyAppTheme" parent="Theme.AppCompat">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/indigo_500</item>
+        <item name="colorPrimaryDark">@color/deep_purple_500</item>
+        <item name="colorAccent">@color/pink_500</item>
+    </style>
+
+    <!--
+    <style name="Theme.Styled" parent="@style/Theme.AppCompat.Light">
+        <item name="actionBarItemBackground">@drawable/selectable_background</item>
+        <item name="actionBarTabStyle">@style/Widget.Styled.ActionBar.TabView</item>
+        <item name="actionBarStyle">@style/Widget.Styled.ActionBar</item>
+        <item name="actionDropDownStyle">@style/Widget.Styled.Spinner.DropDown.ActionBar</item>
+        <item name="dropDownListViewStyle">@style/Widget.Styled.ListView.DropDown</item>
+        <item name="popupMenuStyle">@style/Widget.Styled.PopupMenu</item>
+    </style>
+
+    <style name="Widget.Styled.ActionBar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid">
+        <item name="background">@drawable/ab_solid_styled</item>
+        <item name="backgroundStacked">@drawable/ab_stacked_solid_styled</item>
+        <item name="backgroundSplit">@drawable/ab_bottom_solid_styled</item>
+        <item name="progressBarStyle">@style/Widget.Styled.ProgressBar.Horizontal</item>
+    </style>
+
+    <style name="Widget.Styled.ActionBar.TabView"
+        parent="@style/Widget.AppCompat.Light.ActionBar.TabView">
+        <item name="android:background">@drawable/tab_indicator_ab</item>
+    </style>
+
+    <style name="Widget.Styled.Spinner.DropDown.ActionBar"
+        parent="@style/Widget.AppCompat.Light.Spinner.DropDown.ActionBar">
+        <item name="android:background">@drawable/spinner_background_ab</item>
+        <item name="android:popupBackground">@drawable/menu_dropdown_panel_styled</item>
+        <item name="android:dropDownSelector">@drawable/selectable_background</item>
+    </style>
+
+    <style name="Widget.Styled.ProgressBar.Horizontal"
+        parent="@style/Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="android:progressDrawable">@drawable/progress_horizontal</item>
+    </style>
+
+    <style name="Widget.Styled.PopupMenu" parent="@style/Widget.AppCompat.Light.PopupMenu">
+        <item name="android:popupBackground">@drawable/menu_dropdown_panel_styled</item>
+    </style>
+
+    <style name="Widget.Styled.ListView.DropDown"
+        parent="@style/Widget.AppCompat.Light.ListView.DropDown">
+        <item name="android:listSelector">@drawable/selectable_background</item>
+    </style>
+    -->
+
+</resources>
