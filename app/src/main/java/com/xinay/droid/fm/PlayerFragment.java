@@ -36,6 +36,7 @@ import com.xinay.droid.fm.services.PlayerService;
 import com.xinay.droid.fm.util.Constants;
 import com.xinay.droid.fm.util.StringUtilities;
 
+import org.parceler.Parcel;
 import org.parceler.Parcels;
 
 
@@ -108,7 +109,22 @@ public class PlayerFragment extends DialogFragment {
     public PlayerFragment() {
         // Required empty public constructor
         playerManager = PlayerManager.getInstance();
-        song = playerManager.getCurrentSong();
+    }
+
+    public void setSong(Song song) {
+        this.song = song;
+        Log.v(LOG_TAG, "set song - title: " + song.getSongTitle());
+        Log.v(LOG_TAG, "set song - call sign: " + song.getCallSign());
+        Log.v(LOG_TAG, "set song - station id: " + song.getStationId());
+        if (mAlbumCover == null || mAlbumCover.getDrawable() == null) {
+            playerManager.getRadioStationsClient().doSongArt(
+                    song.getSongArtist(),
+                    song.getSongTitle(),
+                    Constants.ALBUM_ART_IMAGE_RESOLUTION
+            );
+            // register with the bus to receive events
+            BusProvider.getInstance().register(this);
+        }
     }
 
     public interface OnFragmentInteractionListener {
@@ -134,9 +150,6 @@ public class PlayerFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // register with the bus to receive events
-        BusProvider.getInstance().register(this);
-
         if (getArguments() != null) {
             // Bundle extras = getIntent().getExtras();
             // mTrack = (Track) extras.getSerializable(Constants.TRACK_ID_KEY);
@@ -158,22 +171,11 @@ public class PlayerFragment extends DialogFragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.player_layout, container, false);
 
-        // ((TextView) rootView.findViewById(R.id.artist_name)).setText(song.getSongTitle());
-
-//        mSong = (TextView) rootView.findViewById(R.id.track_name);
-        mSongTitle = (TextView) rootView.findViewById(R.id.song_title);
-//        mTimeEllapsed = (TextView) rootView.findViewById(R.id.time_ellapsed);
-//        mTimeDuration = (TextView) rootView.findViewById(R.id.time_total);
-//        mPrevButton = (ImageButton) rootView.findViewById(R.id.prev_button);
+        mAlbumCover = (ImageView) rootView.findViewById(R.id.album_art);
         mPlayPauseButton = (ImageButton) rootView.findViewById(R.id.play_pause_button);
-//        mNextButton = (ImageButton) rootView.findViewById(R.id.next_button);
-//        mSeekbar = (SeekBar) rootView.findViewById(R.id.seek_bar);
-//        mAlbumName = (TextView) rootView.findViewById(R.id.album_name);
+        mSongTitle = (TextView) rootView.findViewById(R.id.song_title);
         mArtistName = (TextView) rootView.findViewById(R.id.artist_name);
         mStationId = (TextView) rootView.findViewById(R.id.station_id);
-        mAlbumCover = (ImageView) rootView.findViewById(R.id.album_art);
-
-        //updateTrackInfo();
 
         mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -181,22 +183,12 @@ public class PlayerFragment extends DialogFragment {
                 playPause();
             }
         });
-//        mPrevButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                prev();
-//            }
-//        });
-//        mNextButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                skip();
-//            }
-//        });
-//
-//        mSeekbar.setOnSeekBarChangeListener(seekBarChanged);
-//        mSeekbar.setProgress(0);
-//        mSeekbar.setMax(PREVIEW_SONG_DURATION);
+
+        if (song != null) {
+            mSongTitle.setText(song.getSongTitle());
+            mArtistName.setText(song.getSongArtist());
+            mStationId.setText(song.getCallSign());
+        }
 
         return rootView;
     }
@@ -218,9 +210,6 @@ public class PlayerFragment extends DialogFragment {
                 mPlayPauseButton.setImageResource(android.R.drawable.ic_media_pause);
             }
         }
-
-        Log.v(LOG_TAG, "updateAlbumArt()");
-        updateAlbumArt();
     }
 
     private void skip() {
@@ -245,15 +234,12 @@ public class PlayerFragment extends DialogFragment {
     private void updateAlbumArt() {
 
         if (song == null) {
+            Log.v(LOG_TAG, "updateAlbumArt , song is null");
             song = playerManager.getCurrentSong();
-            Log.v(LOG_TAG, "song - title: " + song.getSongTitle());
         }
 
-        playerManager.getRadioStationsClient().doSongArt(
-                song.getSongArtist(),
-                song.getSongTitle(),
-                Constants.ALBUM_ART_IMAGE_RESOLUTION
-        );
+        Log.v(LOG_TAG, "updateAlbumArt , song - title: " + song.getSongTitle());
+
 
 //        if (mListener != null) {
 //            if (mListener.isPlaying()) {
@@ -268,27 +254,18 @@ public class PlayerFragment extends DialogFragment {
 
     @Subscribe
     public void onSongArtEvent(SongArtEvent event) {
-
         SongArtResponse songArtResponse = event.response;
-
         SongArtResponse.SongArt songArt = songArtResponse.getSongArt();
-
-        Log.v(LOG_TAG, "onSongArtEvent - songs size : " + songArt.getArtUrl());
-
+        Log.v(LOG_TAG, "onSongArtEvent - songs url : " + songArt.getArtUrl());
         // check for a valid Album Art URL
         if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
             Picasso.with(getActivity())
                     .load(songArt.getArtUrl())
                     .into(mAlbumCover);
         }
-
-
+        // register with the bus to receive events
+        BusProvider.getInstance().unregister(this);
     }
-
-//    private void updateTrackInfo() {
-//        mTimeEllapsed.setText("0:00");
-//        mTimeDuration.setText("0:30");
-//    }
 
     private SeekBar.OnSeekBarChangeListener seekBarChanged = new SeekBar.OnSeekBarChangeListener() {
         @Override

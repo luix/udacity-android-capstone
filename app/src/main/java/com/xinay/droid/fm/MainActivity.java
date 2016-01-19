@@ -9,8 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v13.app.FragmentStatePagerAdapter;
@@ -37,9 +39,14 @@ import com.xinay.droid.fm.services.PlayerService;
 import com.xinay.droid.fm.services.PlayerService.PlayerBinder;
 import com.xinay.droid.fm.util.Constants;
 
+import org.parceler.Parcel;
 import org.parceler.Parcels;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 public class MainActivity extends AppCompatActivity implements
         ArtistListFragment.OnFragmentInteractionListener,
@@ -48,13 +55,16 @@ public class MainActivity extends AppCompatActivity implements
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    private static final String PLAYER_MANAEGER_KEY = "player_manager";
+    private static final String PLAYER_MANAGER_KEY = "player_manager";
+    private static final String PLAYER_FRAGMENTS_KEY = "player_fragments_list";
 
     private Intent playerIntent;
 
     private PlayerManager playerManager;
 
     private boolean mMasterDetailPane;
+
+    private List<PlayerFragment> playerFragmentsList;
 
     /**
      * The number of pages to show
@@ -79,13 +89,15 @@ public class MainActivity extends AppCompatActivity implements
 //        Parcelable wrapped = Parcels.wrap(tracks);
         //Parcelable wrapped = Parcels.wrap(songs);
         Parcelable wrapped = Parcels.wrap(playerManager);
+//        Parcelable wrappedFragments = Parcels.wrap(playerFragmentsList);
 
         //Parcelable wrap = Parcels.wrap(playerService);
         //outState.putParcelable(ARG_TRACKS, wrap);
         //outState.putString(ARG_ARTIST_NAME, artistName);
 //        outState.putParcelable(ARG_SONGS, wrapped);
 //        outState.putString(ARG_SEARCH_QUERY, searchQuery);
-        outState.putParcelable(PLAYER_MANAEGER_KEY, wrapped);
+        outState.putParcelable(PLAYER_MANAGER_KEY, wrapped);
+//        outState.putParcelable(PLAYER_FRAGMENTS_KEY, wrappedFragments);
     }
 
     @Override
@@ -97,14 +109,11 @@ public class MainActivity extends AppCompatActivity implements
         // register with the bus to receive events
         BusProvider.getInstance().register(this);
 
-        // Instantiate a ViewPager and a PagerAdapter.
-        mPager = (ViewPager) findViewById(R.id.pager);
-        mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
-        mPager.setAdapter(mPagerAdapter);
-
         if (savedInstanceState != null) {
-            Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAEGER_KEY);
+            Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
             playerManager = Parcels.unwrap(wrapped);
+//            Parcelable wrappedFragments = savedInstanceState.getParcelable(PLAYER_FRAGMENTS_KEY);
+//            playerFragmentsList = Parcels.unwrap(wrappedFragments);
             Log.v(LOG_TAG, "playerManager unwrapped...");
         } else {
             playerManager = PlayerManager.getInstance();
@@ -124,6 +133,18 @@ public class MainActivity extends AppCompatActivity implements
             startService(playerIntent);
         }
 
+//        final Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                // Do something after 500ms
+//                // Instantiate a ViewPager and a PagerAdapter.
+//                mPager = (ViewPager) findViewById(R.id.pager);
+//                mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
+//                mPager.setAdapter(mPagerAdapter);
+//            }
+//        }, 500);
+
         /*if (findViewById(R.id.top_tracks_container) != null) {
             mMasterDetailPane = true;
             if (savedInstanceState == null) {
@@ -139,19 +160,19 @@ public class MainActivity extends AppCompatActivity implements
         Intent playerService = new Intent(this, PlayerService.class);
         startService(playerService);
 
-        if (findViewById(R.id.fragment_container) != null) {
-
-            Log.v(LOG_TAG, "playerFragment...");
-
-            //ArtistListFragment artistListFragment = new ArtistListFragment();
-            PlayerFragment playerFragment = new PlayerFragment();
-
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, playerFragment)
-                    .addToBackStack(null)
-                    .commit();
-        }
+//        if (findViewById(R.id.fragment_container) != null) {
+//
+//            Log.v(LOG_TAG, "playerFragment...");
+//
+//            //ArtistListFragment artistListFragment = new ArtistListFragment();
+//            PlayerFragment playerFragment = new PlayerFragment();
+//
+//            // Add the fragment to the 'fragment_container' FrameLayout
+//            getFragmentManager().beginTransaction()
+//                    .add(R.id.fragment_container, playerFragment)
+//                    .addToBackStack(null)
+//                    .commit();
+//        }
     }
 
     @Override
@@ -209,7 +230,14 @@ public class MainActivity extends AppCompatActivity implements
 
         @Override
         public Fragment getItem(int position) {
-            return new PlayerFragment();
+            if (playerFragmentsList.size() == position) {
+                PlayerFragment playerFragment = new PlayerFragment();
+                playerFragment.setSong(playerManager.getSongs().get(position));
+                playerFragmentsList.add(position, playerFragment);
+                return playerFragment;
+            } else {
+                return playerFragmentsList.get(position);
+            }
         }
 
         @Override
@@ -310,6 +338,13 @@ public class MainActivity extends AppCompatActivity implements
 
         if (resultsSize > 0) {
             playerManager.setSongs(topSongsResponse.getSongs());
+
+            playerFragmentsList = new ArrayList<PlayerFragment>();
+
+            mPager = (ViewPager) findViewById(R.id.pager);
+            mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
+            mPager.setAdapter(mPagerAdapter);
+
         } else {
             Toast.makeText(this, String.format(getResources().getString(R.string.search_results_hint)), Toast.LENGTH_LONG).show();
         }
