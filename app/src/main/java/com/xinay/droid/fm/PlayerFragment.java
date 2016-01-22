@@ -97,6 +97,7 @@ public class PlayerFragment extends Fragment {
     // reference to the Current Song playing, paused or ready to start
     private Song song;
 
+    private String artist;
     private String albumArtUrl;
 
     public static PlayerFragment newInstance() {
@@ -116,20 +117,12 @@ public class PlayerFragment extends Fragment {
 
     public void setSong(Song asong) {
         this.song = asong;
+        artist = song.getSongArtist();
+        Log.v(LOG_TAG, "set song - artist: " + artist);
         Log.v(LOG_TAG, "set song - title: " + song.getSongTitle());
         Log.v(LOG_TAG, "set song - call sign: " + song.getCallSign());
         Log.v(LOG_TAG, "set song - station id: " + song.getStationId());
         Log.v(LOG_TAG, "set song - albumArtUrl: " + albumArtUrl);
-        if (albumArtUrl == null) {
-            playerManager.getRadioStationsClient().doSongArt(
-                    song.getSongArtist(),
-                    song.getSongTitle(),
-                    Constants.ALBUM_ART_IMAGE_RESOLUTION
-            );
-            Log.v(LOG_TAG, "bus - register: " + this.toString());
-            // register with the bus to receive events
-            BusProvider.getInstance().register(this);
-        }
     }
 
     public interface OnFragmentInteractionListener {
@@ -201,12 +194,28 @@ public class PlayerFragment extends Fragment {
             Picasso.with(getActivity())
                     .load(albumArtUrl)
                     .into(mAlbumCover);
+        } else {
+            if (song != null) {
+                playerManager.getRadioStationsClient().doSongArt(
+                        song.getSongArtist(),
+                        song.getSongTitle(),
+                        Constants.ALBUM_ART_IMAGE_RESOLUTION
+                );
+                try {
+                    Log.v(LOG_TAG, "bus - register: " + this.toString());
+                    // register with the bus to receive events
+                    BusProvider.getInstance().register(this);
+                } catch (IllegalArgumentException e) {
+                    BusProvider.getInstance().unregister(this);
+                }
+            }
         }
 
         mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playPause();
+                //playPause();
+                skip();
             }
         });
 
@@ -286,14 +295,16 @@ public class PlayerFragment extends Fragment {
         Log.v(LOG_TAG, "onSongArtEvent - song url : " + songArt.getArtUrl());
         // check for a valid Album Art URL
         if (albumArtUrl == null) {
-            albumArtUrl = songArt.getArtUrl();
-            Log.v(LOG_TAG, "bus - unregister: " + this.toString());
-            // register with the bus to receive events
-            BusProvider.getInstance().unregister(this);
-            if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
-                Picasso.with(getActivity())
-                        .load(albumArtUrl)
-                        .into(mAlbumCover);
+            if (artist.indexOf(songArt.getArtist()) != -1) {
+                albumArtUrl = songArt.getArtUrl();
+                Log.v(LOG_TAG, "bus - unregister: " + this.toString());
+                // register with the bus to receive events
+                BusProvider.getInstance().unregister(this);
+                if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
+                    Picasso.with(getActivity())
+                            .load(albumArtUrl)
+                            .into(mAlbumCover);
+                }
             }
         }
     }
