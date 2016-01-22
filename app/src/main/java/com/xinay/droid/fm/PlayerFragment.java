@@ -19,6 +19,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 import com.xinay.droid.R;
@@ -48,7 +49,7 @@ import org.parceler.Parcels;
  * Use the {@link PlayerFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PlayerFragment extends DialogFragment {
+public class PlayerFragment extends Fragment {
 
     private final String LOG_TAG = PlayerFragment.class.getSimpleName();
 
@@ -96,6 +97,8 @@ public class PlayerFragment extends DialogFragment {
     // reference to the Current Song playing, paused or ready to start
     private Song song;
 
+    private String albumArtUrl;
+
     public static PlayerFragment newInstance() {
         PlayerFragment fragment = new PlayerFragment();
 //        Bundle args = new Bundle();
@@ -111,17 +114,19 @@ public class PlayerFragment extends DialogFragment {
         playerManager = PlayerManager.getInstance();
     }
 
-    public void setSong(Song song) {
-        this.song = song;
+    public void setSong(Song asong) {
+        this.song = asong;
         Log.v(LOG_TAG, "set song - title: " + song.getSongTitle());
         Log.v(LOG_TAG, "set song - call sign: " + song.getCallSign());
         Log.v(LOG_TAG, "set song - station id: " + song.getStationId());
-        if (mAlbumCover == null || mAlbumCover.getDrawable() == null) {
+        Log.v(LOG_TAG, "set song - albumArtUrl: " + albumArtUrl);
+        if (albumArtUrl == null) {
             playerManager.getRadioStationsClient().doSongArt(
                     song.getSongArtist(),
                     song.getSongTitle(),
                     Constants.ALBUM_ART_IMAGE_RESOLUTION
             );
+            Log.v(LOG_TAG, "bus - register: " + this.toString());
             // register with the bus to receive events
             BusProvider.getInstance().register(this);
         }
@@ -148,6 +153,7 @@ public class PlayerFragment extends DialogFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+//        Log.v(LOG_TAG, "onCreate(): " + this.toString());
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
@@ -166,8 +172,21 @@ public class PlayerFragment extends DialogFragment {
     }
 
     @Override
+    public void onResume() {
+//        Log.v(LOG_TAG, "onResume(): " + this.toString());
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+//        Log.v(LOG_TAG, "onPause(): " + this.toString());
+        super.onPause();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onCreateView(): " + this.toString());
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.player_layout, container, false);
 
@@ -177,6 +196,13 @@ public class PlayerFragment extends DialogFragment {
         mArtistName = (TextView) rootView.findViewById(R.id.artist_name);
         mStationId = (TextView) rootView.findViewById(R.id.station_id);
 
+        Log.v(LOG_TAG, "albumArtUrl: " + albumArtUrl);
+        if (albumArtUrl != null) {
+            Picasso.with(getActivity())
+                    .load(albumArtUrl)
+                    .into(mAlbumCover);
+        }
+
         mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -184,6 +210,7 @@ public class PlayerFragment extends DialogFragment {
             }
         });
 
+        Log.v(LOG_TAG, "song: " + song);
         if (song != null) {
             mSongTitle.setText(song.getSongTitle());
             mArtistName.setText(song.getSongArtist());
@@ -193,12 +220,12 @@ public class PlayerFragment extends DialogFragment {
         return rootView;
     }
 
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = super.onCreateDialog(savedInstanceState);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        return dialog;
-    }
+//    @Override
+//    public Dialog onCreateDialog(Bundle savedInstanceState) {
+//        Dialog dialog = super.onCreateDialog(savedInstanceState);
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        return dialog;
+//    }
 
     private void playPause() {
         Log.v(LOG_TAG, "playPause()");
@@ -256,15 +283,19 @@ public class PlayerFragment extends DialogFragment {
     public void onSongArtEvent(SongArtEvent event) {
         SongArtResponse songArtResponse = event.response;
         SongArtResponse.SongArt songArt = songArtResponse.getSongArt();
-        Log.v(LOG_TAG, "onSongArtEvent - songs url : " + songArt.getArtUrl());
+        Log.v(LOG_TAG, "onSongArtEvent - song url : " + songArt.getArtUrl());
         // check for a valid Album Art URL
-        if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
-            Picasso.with(getActivity())
-                    .load(songArt.getArtUrl())
-                    .into(mAlbumCover);
+        if (albumArtUrl == null) {
+            albumArtUrl = songArt.getArtUrl();
+            Log.v(LOG_TAG, "bus - unregister: " + this.toString());
+            // register with the bus to receive events
+            BusProvider.getInstance().unregister(this);
+            if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
+                Picasso.with(getActivity())
+                        .load(albumArtUrl)
+                        .into(mAlbumCover);
+            }
         }
-        // register with the bus to receive events
-        BusProvider.getInstance().unregister(this);
     }
 
     private SeekBar.OnSeekBarChangeListener seekBarChanged = new SeekBar.OnSeekBarChangeListener() {

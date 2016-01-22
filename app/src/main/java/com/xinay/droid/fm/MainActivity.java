@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v13.app.FragmentStatePagerAdapter;
@@ -223,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+    private class ScreenSlidePagerAdapter extends FragmentPagerAdapter {
         public ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -309,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements
 
         if (mMasterDetailPane) {
             // The device is using a large layout, so show the fragment as a dialog
-            newFragment.show(fragmentManager, "dialog");
+//            newFragment.show(fragmentManager, "dialog");
         } else {
             // The device is smaller, so show the fragment fullscreen
             FragmentTransaction transaction = fragmentManager.beginTransaction();
