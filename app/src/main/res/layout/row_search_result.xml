@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/list_row_height"
+    android:padding="@dimen/list_row_padding"
+    android:background="@color/grey_99">
+
+    <TextView
+        android:id="@+id/song_title"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:textColor="@color/pink_500"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text" />
+
+    <TextView
+        android:id="@+id/artist_name"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/song_title"
+        android:gravity="center_vertical"
+        android:textColor="@color/white"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text" />
+
+    <TextView
+        android:id="@+id/station_call_sign"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/artist_name"
+        android:gravity="center_vertical"
+        android:textColor="@color/grey_aa"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text" />
+
+    <TextView
+        android:id="@+id/genre"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/station_call_sign"
+        android:gravity="center_vertical"
+        android:textColor="@color/grey_cb"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Small Text" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/list_divider_height"
+        android:layout_alignParentBottom="true"
+        android:background="@color/pink_500"/>
+
+</RelativeLayout>

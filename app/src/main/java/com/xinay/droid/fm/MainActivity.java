@@ -34,6 +34,7 @@ import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.TopSongsEvent;
 import com.xinay.droid.fm.model.Artist;
 import com.xinay.droid.fm.model.Song;
+import com.xinay.droid.fm.model.Station;
 import com.xinay.droid.fm.model.TopSongsResponse;
 import com.xinay.droid.fm.model.Track;
 import com.xinay.droid.fm.services.PlayerService;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class MainActivity extends AppCompatActivity implements
-        ArtistListFragment.OnFragmentInteractionListener,
+        SearchFragment.OnFragmentInteractionListener,
         TopTracksFragment.OnFragmentInteractionListener,
         PlayerFragment.OnFragmentInteractionListener {
 
@@ -271,6 +272,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
+    /*
     @Override
     public void onArtistSelected(Artist artist) {
         Log.v(LOG_TAG, "onArtistSelected - put extra: artist id=" + artist.getId());
@@ -296,8 +298,9 @@ public class MainActivity extends AppCompatActivity implements
 //                    .putExtra(Constants.ARTIST_NAME_KEY, artist.getName());
 //            startActivity(intent);
         }
-
     }
+    */
+
 
     @Override
     public void onTrackSelected(Track track) {
@@ -325,6 +328,13 @@ public class MainActivity extends AppCompatActivity implements
 //                .putExtra(Constants.ARTIST_NAME_KEY, artistName)
 //                .putExtra(Constants.TRACK_ID_KEY, (Serializable) track);
 //        startActivity(intent);
+    }
+
+    @Override
+    public void onStationSelected(Station station) {
+        Log.v(LOG_TAG, "onStationSelected - put extra: station call id=" + station.getStationId());
+
+        FragmentManager fragmentManager = getFragmentManager();
     }
 
     @Subscribe

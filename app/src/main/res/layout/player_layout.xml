@@ -3,7 +3,7 @@
     android:id="@+id/content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_material_dark">
+    android:background="@color/grey_66">
 
 <RelativeLayout
     android:layout_width="match_parent"
@@ -32,6 +32,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Large Text"
         android:layout_below="@+id/album_art"
+        android:textColor="@color/pink_500"
         android:layout_centerHorizontal="true" />
 
     <TextView
@@ -40,6 +41,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Medium Text"
+        android:textColor="@color/white"
         android:layout_below="@+id/song_title"
         android:layout_centerHorizontal="true" />
 
@@ -49,6 +51,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Small Text"
+        android:textColor="@color/grey_cb"
         android:layout_below="@+id/artist_name"
         android:layout_centerHorizontal="true" />
 

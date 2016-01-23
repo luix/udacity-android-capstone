@@ -2,33 +2,36 @@ package com.xinay.droid.fm.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import org.parceler.Parcel;
+
 import java.io.Serializable;
 
 /**
  * Created by luisvivero on 1/3/16.
  */
+@Parcel
 public class Station implements Serializable {
 
     @SerializedName("callsign")
-    private String callSign;
+    String callSign;
 
     @SerializedName("genre")
-    private String genre;
+    String genre;
 
     @SerializedName("artist")
-    private String artist;
+    String artist;
 
     @SerializedName("title")
-    private String title;
+    String title;
 
     @SerializedName("songstamp")
-    private String songStamp;
+    String songStamp;
 
     @SerializedName("seconds_remaining")
-    private int secondsRemaining;
+    int secondsRemaining;
 
     @SerializedName("station_id")
-    private String stationId;
+    String stationId;
 
     public String getCallSign() {
         return callSign;

@@ -1,8 +1,8 @@
 package com.xinay.droid.fm;
 
 import android.app.Activity;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -26,34 +26,34 @@ import com.xinay.droid.fm.event.TopSongsEvent;
 import com.xinay.droid.fm.model.Artist;
 import com.xinay.droid.fm.model.ArtistSearchResponse;
 import com.xinay.droid.fm.model.Artists;
+import com.xinay.droid.fm.model.Playlist;
+import com.xinay.droid.fm.model.PlaylistResponse;
 import com.xinay.droid.fm.model.Songs;
+import com.xinay.droid.fm.model.Station;
 import com.xinay.droid.fm.model.TopSongsResponse;
 
 import org.parceler.Parcels;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link ArtistListFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ArtistListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ArtistListFragment extends Fragment {
+import java.util.List;
 
-    private final String LOG_TAG = ArtistListFragment.class.getSimpleName();
+/**
+ * Created by luisvivero on 1/23/16.
+ */
+public class SearchFragment extends Fragment {
+
+    private final String LOG_TAG = SearchFragment.class.getSimpleName();
 
     //private static final String KEY_ARTIST_LIST = "artists";
-    private static final String KEY_SONGS_LIST = "songs";
+    private static final String KEY_PLAYLIST = "playlist";
 
-    private Artists mArtists;
+    private Playlist playlist;
 
-    private TopSongsResponse mSongs;
+    private PlaylistResponse playListResponse;
     private RadioStationsClient mRadioClient;
 
     private SearchResultsListAdapter searchResultsListAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private Parcelable mListState;
+    private Parcelable wrappedPlaylist;
     private RecyclerView mResultsList;
     private ProgressBar mProgressBar;
     private EditText mSearchText;
@@ -61,8 +61,8 @@ public class ArtistListFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    public static ArtistListFragment newInstance() {
-        return new ArtistListFragment();
+    public static SearchFragment newInstance() {
+        return new SearchFragment();
     }
 
     /**
@@ -72,12 +72,12 @@ public class ArtistListFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         /**
-         * ArtistListFragmentCallback for when an item has been selected.
+         * SearchFragmentCallback for when an item has been selected.
          */
-        public void onArtistSelected(Artist artist);
+        public void onStationSelected(Station station);
     }
 
-    public ArtistListFragment() {
+    public SearchFragment() {
         // Required empty public constructor
     }
 
@@ -89,8 +89,8 @@ public class ArtistListFragment extends Fragment {
         //mListState = mLayoutManager.onSaveInstanceState();
         //outState.putParcelable(Constants.SEARCH_RESULTS_INSTANCE_STATE, mListState);
 
-        mListState = Parcels.wrap(Songs.class, mSongs);
-        outState.putParcelable(KEY_SONGS_LIST, mListState);
+        wrappedPlaylist = Parcels.wrap(Playlist.class, playlist);
+        outState.putParcelable(KEY_PLAYLIST, wrappedPlaylist);
     }
 
     @Override
@@ -111,15 +111,15 @@ public class ArtistListFragment extends Fragment {
 //
 //        // Retrieve list state and list/item positions
 //        //mListState = savedInstanceState.getParcelable(Constants.SEARCH_RESULTS_INSTANCE_STATE);
-//        mListState = savedInstanceState.getParcelable(KEY_ARTIST_LIST);
-//        mArtists = Parcels.unwrap(mListState);
+//        wrappedPlaylist = savedInstanceState.getParcelable(KEY_ARTIST_LIST);
+//        playlist = Parcels.unwrap(wrappedPlaylist);
 //    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (mListState != null) {
-            mLayoutManager.onRestoreInstanceState(mListState);
+        if (wrappedPlaylist != null) {
+            mLayoutManager.onRestoreInstanceState(wrappedPlaylist);
         } else {
             mLayoutManager = new LinearLayoutManager(getActivity());
         }
@@ -127,8 +127,8 @@ public class ArtistListFragment extends Fragment {
         if(savedInstanceState != null) {
             // read the artists list from the saved state
             //mListState = savedInstanceState.getParcelableArrayList(KEY_ARTIST_LIST);
-            mListState = savedInstanceState.getParcelable(KEY_SONGS_LIST);
-            mSongs = Parcels.unwrap(mListState);
+            wrappedPlaylist = savedInstanceState.getParcelable(KEY_PLAYLIST);
+            playlist = Parcels.unwrap(wrappedPlaylist);
         }
         mRadioClient = new RadioStationsClient();
     }
@@ -138,13 +138,13 @@ public class ArtistListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         searchResultsListAdapter = new SearchResultsListAdapter((MainActivity)getActivity());
-        if (mArtists != null) {
-//            searchResultsListAdapter.setArtists(mArtists);
+        if (playlist != null) {
+            searchResultsListAdapter.setPlaylist(playlist);
         }
 
-//        searchResultsListAdapter.setItems(mSongs);
+        //searchResultsListAdapter.setItems(mSongs);
 
-        View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_search_list, container, false);
 
         //mSearchView = (SearchView) findViewById(R.id.search_query);
         mSearchText = (EditText) rootView.findViewById(R.id.search_edit_text);
@@ -171,16 +171,16 @@ public class ArtistListFragment extends Fragment {
             }
         });
 
-        if (mArtists == null) {
-            searchForArtist("Michael");
-        }
+//        if (mArtists == null) {
+//            searchForArtist("Michael");
+//        }
 
         return rootView;
     }
 
-    public void onArtistSelected(Artist artist) {
+    public void onStationSelected(Station station) {
         if (mListener != null) {
-            mListener.onArtistSelected(artist);
+            mListener.onStationSelected(station);
         }
     }
 
@@ -213,7 +213,7 @@ public class ArtistListFragment extends Fragment {
         mProgressBar.setVisibility(View.GONE);
 
         if (resultsSize > 0) {
-//            searchResultsListAdapter.setItems(mSongs);
+//            searchResultsListAdapter.setPlaylist(mSongs);
             //searchResultsListAdapter.setArtists(mArtists);
             searchResultsListAdapter.notifyDataSetChanged();
         } else {
@@ -234,7 +234,7 @@ public class ArtistListFragment extends Fragment {
         mProgressBar.setVisibility(View.GONE);
 
         if (resultsSize > 0) {
-            mArtists = apiResponse.getArtists();
+//            mArtists = apiResponse.getArtists();
 //            searchResultsListAdapter.setArtists(mArtists);
             searchResultsListAdapter.notifyDataSetChanged();
         } else {
@@ -295,4 +295,6 @@ public class ArtistListFragment extends Fragment {
         });
         */
     }
+
+
 }

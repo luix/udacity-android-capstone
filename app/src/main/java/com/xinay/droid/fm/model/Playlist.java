@@ -14,21 +14,13 @@ import java.util.List;
 @Parcel
 public class Playlist {
 
-    @SerializedName("items")
-    List<Station> items;
-
-    @SerializedName("total")
-    int total;
+    List<Station> stations;
 
     public Playlist() {
-        this.items = new ArrayList<Station>();
+        this.stations = new ArrayList<Station>();
     }
 
-    public List<Station> getItems() {
-        return items;
-    }
-
-    public int getTotal() {
-        return total;
+    public List<Station> getStations() {
+        return stations;
     }
 }

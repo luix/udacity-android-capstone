@@ -17,6 +17,7 @@ import com.xinay.droid.fm.model.Artists;
 import com.xinay.droid.fm.model.Image;
 import com.xinay.droid.fm.model.Playlist;
 import com.xinay.droid.fm.model.Song;
+import com.xinay.droid.fm.model.Station;
 import com.xinay.droid.fm.model.TopSongsResponse;
 
 /**
@@ -27,8 +28,7 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
     private final String LOG_TAG = SearchResultsListAdapter.class.getSimpleName();
 
     private static MainActivity parentActivity;
-    private Artists artists;
-    private TopSongsResponse items;
+    private Playlist playlist;
 
     public SearchResultsListAdapter() {
     }
@@ -37,43 +37,32 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
         this.parentActivity = parentActivity;
     }
 
-    public void setArtists(Artists artists) {
-        this.artists = artists;
-    }
-
-    public void setItems(TopSongsResponse items) {
-        this.items = items;
+    public void setPlaylist(Playlist playlist) {
+        this.playlist = playlist;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         Log.v(LOG_TAG, "onCreateViewHolder");
         LayoutInflater inflater = (LayoutInflater) parentActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.artist_search_result, viewGroup, false);
+        View view = inflater.inflate(R.layout.row_search_result, viewGroup, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         Log.v(LOG_TAG, "onBindViewHolder");
-        if (items == null) {
+        if (playlist == null) {
             return;
         }
 
-        Song song = items.getSongs().get(position);
-        Log.v(LOG_TAG, "song title " + song.getSongTitle());
+        Station station = playlist.getStations().get(position);
+        Log.v(LOG_TAG, "song title " + station.getTitle());
 
-        viewHolder.setSong(song);
-        Log.v(LOG_TAG, "song artist : " + song.getSongArtist());
-        Log.v(LOG_TAG, "song call sign : " + song.getCallSign());
-        Log.v(LOG_TAG, "song current playing : " + song.getCurrentlyPlaying());
-        Log.v(LOG_TAG, "song station id : " + song.getStationId());
-        Log.v(LOG_TAG, "song uber url : " + song.getUberUrl());
-        Playlist playlist = song.getPlaylist();
-        Log.v(LOG_TAG, "playlits total : " + playlist.getTotal());
+        viewHolder.setStation(station);
+        Log.v(LOG_TAG, "song artist : " + station.getArtist());
 
-
-        viewHolder.itemArtistName.setText(song.getSongArtist());
+        viewHolder.itemArtistName.setText(station.getArtist());
 
         /*
         Log.v(LOG_TAG, "are images null : "  + String.valueOf(artist.getImages() == null));
@@ -99,8 +88,8 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
 
     @Override
     public int getItemCount() {
-        if (items != null) {
-            return items.getSongs().size();
+        if (playlist != null) {
+            return playlist.getStations().size();
         } else {
             return 0;
         }
@@ -109,31 +98,31 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
     public static class ViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener
     {
-        private final ImageView itemArtistThumbnail;
+        private final TextView itemSongTitle;
         private final TextView itemArtistName;
-        private Artist itemArtist;
-        private Song song;
+        private final TextView itemStationCallSign;
+        private final TextView itemGenre;
+        private Station station;
 
         public ViewHolder(View view) {
             super(view);
 
             view.setOnClickListener(this);
 
-            itemArtistThumbnail = (ImageView) view.findViewById(R.id.artist_thumbnail);
+            itemSongTitle = (TextView) view.findViewById(R.id.song_title);
             itemArtistName = (TextView) view.findViewById(R.id.artist_name);
+            itemStationCallSign = (TextView) view.findViewById(R.id.station_call_sign);
+            itemGenre = (TextView) view.findViewById(R.id.genre);
         }
 
         @Override
         public void onClick(View v) {
             //parentActivity.instantiateTopTracksFragment(itemArtist);
-            parentActivity.onArtistSelected(itemArtist);
+            parentActivity.onStationSelected(station);
         }
 
-        public void setArtist(Artist artist) {
-            itemArtist = artist;
-        }
-        public void setSong(Song song) {
-            song = song;
+        public void setStation(Station station) {
+            station = station;
         }
     }
 }
