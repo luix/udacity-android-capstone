@@ -22,7 +22,7 @@ import android.widget.Toast;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.async.RadioStationsClient;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.SongArtEvent;

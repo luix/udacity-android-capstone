@@ -11,7 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.model.Album;
 import com.xinay.droid.fm.model.Image;
 import com.xinay.droid.fm.model.Track;

@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.async.RadioStationsClient;
 import com.xinay.droid.fm.model.Artist;
 import com.xinay.droid.fm.model.Song;

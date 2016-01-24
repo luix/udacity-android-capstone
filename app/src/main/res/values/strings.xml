@@ -9,6 +9,11 @@
     <string name="top_tracks_title">Top 10 Tracks</string>
     <string name="no_tracks_found">No tracks where found for this artist</string>
 
+    <string name="title_section1">R n B</string>
+    <string name="title_section2">Reggae</string>
+    <string name="title_section3">Rap</string>
+
+
     <!-- UberStations Web Services Query Parameter Names-->
     <string name="query">q</string>
     <string name="type">type</string>

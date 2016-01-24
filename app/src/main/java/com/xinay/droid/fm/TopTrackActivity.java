@@ -7,7 +7,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.model.Track;
 import com.xinay.droid.fm.util.Constants;
 

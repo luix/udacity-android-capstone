@@ -14,7 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.TopTracksEvent;
 import com.xinay.droid.fm.model.Album;

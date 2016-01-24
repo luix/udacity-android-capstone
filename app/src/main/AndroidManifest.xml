@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.xinay.droid">
+    package="com.xinay.droid.fm">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -11,7 +11,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".fm.MainActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
@@ -24,7 +24,7 @@
                 android:value=".fm.SearchResultsActivity" />
         </activity>
         <activity
-            android:name=".fm.SearchResultsActivity"
+            android:name=".SearchResultsActivity"
             android:label="@string/title_activity_search_results">
 
             <!-- to identify this activity as "searchable" -->
@@ -39,13 +39,13 @@
 
         </activity>
         <activity
-            android:name=".fm.TopTrackActivity"
+            android:name=".TopTrackActivity"
             android:windowSoftInputMode="adjustPan"></activity>
         <activity
-            android:name=".fm.PlayerActivity"
+            android:name=".PlayerActivity"
             android:label="@string/title_activity_player"></activity>
 
-        <service android:name=".fm.services.PlayerService" />
+        <service android:name=".services.PlayerService" />
 
     </application>
 

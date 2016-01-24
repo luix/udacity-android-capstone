@@ -13,7 +13,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.SearchView;
 
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 
 
 public class SearchResultsActivity extends AppCompatActivity {

@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 
 /**
  * A placeholder fragment containing a simple view.

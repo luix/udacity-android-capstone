@@ -18,7 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.async.RadioStationsClient;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.ArtistSearchEvent;

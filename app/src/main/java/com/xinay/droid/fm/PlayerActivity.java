@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.xinay.droid.R;
+import com.xinay.droid.fm.R;
 
 public class PlayerActivity extends AppCompatActivity {
 
