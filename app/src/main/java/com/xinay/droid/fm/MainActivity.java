@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -16,16 +17,16 @@ import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.SearchView;
 import android.widget.Toast;
-
-//import android.widget.SearchView;
 
 import com.squareup.otto.Subscribe;
 import com.xinay.droid.R;
@@ -107,6 +108,8 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_screen_slide);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         // register with the bus to receive events
         BusProvider.getInstance().register(this);
@@ -207,7 +210,31 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the options menu from XML
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // Get the SearchView and set the searchable configuration
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+
+        // Associate searchable configuration with the SearchView
+//        SearchManager searchManager =
+//                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//        SearchView searchView =
+//                (SearchView) menu.findItem(R.id.search).getActionView();
+
+        Log.v(LOG_TAG, "search - searchManager: " + searchManager.toString());
+        Log.v(LOG_TAG, "search - searchView: " + searchView.toString());
+
+        if (searchView != null) {
+            searchView.setSearchableInfo(
+                    searchManager.getSearchableInfo(getComponentName()));
+            // Assumes current activity is the searchable activity
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+
+        }
+
         return true;
     }
 
@@ -352,7 +379,7 @@ public class MainActivity extends AppCompatActivity implements
 
             playerFragmentsList = new ArrayList<PlayerFragment>();
 
-            mPager = (ViewPager) findViewById(R.id.pager);
+            mPager = (ViewPager) findViewById(R.id.viewpager);
             mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
             mPager.setAdapter(mPagerAdapter);
 

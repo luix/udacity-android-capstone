@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Droid.fm</string>
 
-    <string name="search_hint">Start your Artist search here&#8230;</string>
+    <string name="search_hint">Search by Song, Artist or Station&#8230;</string>
     <string name="action_settings">Settings</string>
+    <string name="search_title">Search by Song, Artist or Station</string>
     <string name="no_results_found">No results found for \"%1$s\"</string>
     <string name="search_results_hint">Please make sure your words are spelled correctly, or use less or different keywords</string>
     <string name="top_tracks_title">Top 10 Tracks</string>
@@ -16,5 +17,6 @@
     <!-- TODO: Remove or change these placeholder texts -->
     <string name="hello_world">Hello world!</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_search_results">SearchResultsActivity</string>
 
 </resources>

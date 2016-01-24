@@ -3,7 +3,7 @@
     android:id="@+id/content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grey_66">
+    android:background="@color/grey_33">
 
 <RelativeLayout
     android:layout_width="match_parent"
@@ -16,14 +16,6 @@
         android:layout_height="320dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
-
-    <ImageButton
-        android:id="@+id/play_pause_button"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:src="@android:drawable/ic_media_play" />
 
     <TextView
         android:id="@+id/song_title"
@@ -54,6 +46,15 @@
         android:textColor="@color/grey_cb"
         android:layout_below="@+id/artist_name"
         android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:id="@+id/play_pause_button"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/station_id"
+        android:src="@android:drawable/ic_media_play" />
+
 
 </RelativeLayout>
 </ScrollView>

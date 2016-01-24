@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/list_row_height"
     android:padding="@dimen/list_row_padding"
-    android:background="@color/grey_99">
+    android:background="@color/grey_66">
 
     <TextView
         android:id="@+id/song_title"
