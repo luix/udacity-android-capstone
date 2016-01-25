@@ -12,6 +12,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.xinay.droid.fm.model.Playlist;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,10 +30,15 @@ public class GenresFragment extends Fragment {
 
     private final String LOG_TAG = GenresFragment.class.getSimpleName();
 
+    private Playlist playlist;
+
+    private GenresListAdapter genresListAdapter;
+
 //    private OnFragmentInteractionListener mListener;
 
     public GenresFragment() {
         // Required empty public constructor
+        genresListAdapter = new GenresListAdapter();
     }
 
     /**
@@ -136,5 +143,11 @@ public class GenresFragment extends Fragment {
         items.add(new ItemObject(R.drawable.droid_fm,"Dark Horse", "Katy Perry"));
         items.add(new ItemObject(R.drawable.droid_fm,"Dip It Low", "Christina Milian"));
         return items;
+    }
+
+    public void setPlaylist(Playlist playlist) {
+        this.playlist = playlist;
+        genresListAdapter.setPlaylist(playlist);
+        genresListAdapter.notifyDataSetChanged();
     }
 }

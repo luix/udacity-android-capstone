@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
             android:titleTextColor="?attr/colorAccent"
-            android:elevation="2dp"
+            app:tabMode="scrollable"
             app:layout_scrollFlags="scroll|enterAlways" />
 
     </android.support.design.widget.AppBarLayout>

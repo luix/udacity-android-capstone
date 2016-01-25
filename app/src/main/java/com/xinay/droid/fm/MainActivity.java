@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
@@ -35,11 +36,14 @@ import com.xinay.droid.fm.services.PlayerService;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements
-        ActionBar.TabListener,
         SearchFragment.OnFragmentInteractionListener,
         TopTracksFragment.OnFragmentInteractionListener,
         PlayerFragment.OnFragmentInteractionListener {
@@ -48,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final String PLAYER_MANAGER_KEY = "player_manager";
     private static final String PLAYER_FRAGMENTS_KEY = "player_fragments_list";
+    private static final String PLAYER_FRAGMENTS_MAP_KEY = "player_fragments_map";
+    private static final String GENRES_FRAGMENTS_MAP_KEY = "genres_fragments_map";
 
     private Intent playerIntent;
 
@@ -56,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mMasterDetailPane;
 
     private List<PlayerFragment> playerFragmentsList;
+    private Map<String, GenresFragment> playerFragmentsMap;
+    private Map<String, GenresFragment> genresFragmentMap;
 
     /**
      * The number of pages to show
@@ -84,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements
 //        Parcelable wrapped = Parcels.wrap(tracks);
         //Parcelable wrapped = Parcels.wrap(songs);
         Parcelable wrapped = Parcels.wrap(playerManager);
+        Parcelable wrappedGenresMap = Parcels.wrap(genresFragmentMap);
 //        Parcelable wrappedFragments = Parcels.wrap(playerFragmentsList);
 
         //Parcelable wrap = Parcels.wrap(playerService);
@@ -92,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements
 //        outState.putParcelable(ARG_SONGS, wrapped);
 //        outState.putString(ARG_SEARCH_QUERY, searchQuery);
         outState.putParcelable(PLAYER_MANAGER_KEY, wrapped);
+        outState.putParcelable(GENRES_FRAGMENTS_MAP_KEY, wrappedGenresMap);
 //        outState.putParcelable(PLAYER_FRAGMENTS_KEY, wrappedFragments);
     }
 
@@ -175,11 +185,14 @@ public class MainActivity extends AppCompatActivity implements
         if (savedInstanceState != null) {
             Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
             playerManager = Parcels.unwrap(wrapped);
+            Parcelable wrappedGenres = savedInstanceState.getParcelable(GENRES_FRAGMENTS_MAP_KEY);
+            genresFragmentMap = Parcels.unwrap(wrappedGenres);
 //            Parcelable wrappedFragments = savedInstanceState.getParcelable(PLAYER_FRAGMENTS_KEY);
 //            playerFragmentsList = Parcels.unwrap(wrappedFragments);
             Log.v(LOG_TAG, "playerManager unwrapped...");
         } else {
             playerManager = PlayerManager.getInstance();
+            genresFragmentMap = new HashMap<>();
             Log.v(LOG_TAG, "playerManager.init()...");
             playerManager.init();
         }
@@ -310,22 +323,22 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
-        // When the given tab is selected, switch to the corresponding page in
-        // the ViewPager.
-        mViewPager.setCurrentItem(tab.getPosition());
-    }
-
-    @Override
-    public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
-
-    }
-
-    @Override
-    public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
-
-    }
+//    @Override
+//    public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+//        // When the given tab is selected, switch to the corresponding page in
+//        // the ViewPager.
+//        mViewPager.setCurrentItem(tab.getPosition());
+//    }
+//
+//    @Override
+//    public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+//
+//    }
+//
+//    @Override
+//    public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+//
+//    }
 
     /**
      * A {@link android.support.v4.app.FragmentPagerAdapter} that returns a fragment corresponding to
@@ -506,10 +519,15 @@ public class MainActivity extends AppCompatActivity implements
 
         int resultsSize = topSongsResponse.getSongs().size();
 
+        String key = topSongsResponse.getKey();
+
+        Log.v(LOG_TAG, "onTopSongsEvent - songs key : " + key);
         Log.v(LOG_TAG, "onTopSongsEvent - songs size : " + resultsSize);
 
         if (resultsSize > 0) {
             playerManager.setSongs(topSongsResponse.getSongs());
+
+            genresFragmentMap.get(key);
 
             playerFragmentsList = new ArrayList<PlayerFragment>();
 

@@ -137,7 +137,7 @@ public class RadioStationsClient {
 
     }
 
-    public void doTopSongs(String searchTerm){
+    public void doTopSongs(final String searchTerm){
         String encodedSearch = null;
         try {
             encodedSearch = StringUtilities.makeUrlEncoded(searchTerm);
@@ -162,7 +162,10 @@ public class RadioStationsClient {
 
                 Log.v(LOG_TAG, "onResponse code: " + response.code());
 
-                BusProvider.getInstance().post(produceTopSongsEvent(response.body()));
+                TopSongsResponse topSongsResponse = response.body();
+                topSongsResponse.setKey(searchTerm);
+
+                BusProvider.getInstance().post(produceTopSongsEvent(topSongsResponse));
 
                 // response.isSuccess() is true if the response code is 2xx
                 if (response.isSuccess()) {

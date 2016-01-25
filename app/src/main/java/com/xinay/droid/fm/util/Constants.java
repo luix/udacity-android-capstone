@@ -23,4 +23,25 @@ public class Constants {
 
     public static final String COUNTRY_CODE = "US";
 
+    public static final String[] GENRES_LIST = {
+            "Music",
+            "70's",
+            "80's",
+            "90's",
+            "00's",
+            "Rock",
+            "Country",
+            "World",
+            "Latin Hits",
+            "Hip Hop",
+            "Chill",
+            "Electronic",
+            "House",
+            "Techno",
+            "Metal",
+            "Classical"
+    };
+
+
+
 }

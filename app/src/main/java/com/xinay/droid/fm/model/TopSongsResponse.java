@@ -12,7 +12,9 @@ import java.util.List;
 @Parcel
 public class TopSongsResponse {
     @SerializedName("result")
-     List<Song> songs;
+    List<Song> songs;
+
+    String key;
 
     public List<Song> getSongs() {
         return songs;
@@ -20,5 +22,13 @@ public class TopSongsResponse {
 
     public void setSongs(List<Song> songs) {
         this.songs = songs;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }

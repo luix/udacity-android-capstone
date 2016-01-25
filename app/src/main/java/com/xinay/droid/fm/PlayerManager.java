@@ -109,7 +109,13 @@ public class PlayerManager {
     }
 
     public void startup() {
-        radioStationsClient.doTopSongs(searchQuery);
+        radioStationsClient.doTopSongs("Music");
+        radioStationsClient.doTopSongs("Rock");
+        radioStationsClient.doTopSongs("Hip Hop");
+        radioStationsClient.doTopSongs("80");
+        radioStationsClient.doTopSongs("90");
+        radioStationsClient.doTopSongs("00");
+        radioStationsClient.doTopSongs("Classical");
     }
 
     public void onPlayerPlayPause() {
