@@ -4,6 +4,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,12 +36,13 @@ public class GenresFragment extends Fragment {
     private Playlist playlist;
 
     private GenresListAdapter genresListAdapter;
+    private RecyclerView mGenresRecyclerView;
 
 //    private OnFragmentInteractionListener mListener;
 
     public GenresFragment() {
         // Required empty public constructor
-        genresListAdapter = new GenresListAdapter();
+        //genresListAdapter = new GenresListAdapter();
     }
 
     /**
@@ -74,19 +78,29 @@ public class GenresFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView");
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_genres, container, false);
-        GridView gridview = (GridView)view.findViewById(R.id.gridview);
+        View view = inflater.inflate(R.layout.fragment_genres_list, container, false);
+        //GridView gridview = (GridView)view.findViewById(R.id.gridview);
 
-        List<ItemObject> allItems = getAllItemObject();
-        CustomAdapter customAdapter = new CustomAdapter(getActivity(), allItems);
-        gridview.setAdapter(customAdapter);
+        mGenresRecyclerView = (RecyclerView) view.findViewById(R.id.songs_list);
+        mGenresRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        mGenresRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        //List<ItemObject> allItems = getAllItemObject();
+        //CustomAdapter customAdapter = new CustomAdapter(getActivity(), allItems);
+        //gridview.setAdapter(customAdapter);
 
-        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(), "Position: " + position, Toast.LENGTH_SHORT).show();
-            }
-        });
+        genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
+        if (playlist != null) {
+            genresListAdapter.setPlaylist(playlist);
+            genresListAdapter.notifyDataSetChanged();
+        }
+        mGenresRecyclerView.setAdapter(genresListAdapter);
+
+//        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Toast.makeText(getActivity(), "Position: " + position, Toast.LENGTH_SHORT).show();
+//            }
+//        });
         return view;
     }
 

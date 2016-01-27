@@ -44,7 +44,7 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         Log.v(LOG_TAG, "onBindViewHolder");
-        if (playlist == null) {
+        if (playlist == null || viewHolder == null) {
             return;
         }
 
@@ -54,7 +54,9 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
         viewHolder.setStation(station);
         Log.v(LOG_TAG, "song artist : " + station.getArtist());
 
+        viewHolder.itemSongTitle.setText(station.getTitle());
         viewHolder.itemArtistName.setText(station.getArtist());
+        viewHolder.itemStationCallSign.setText(station.getCallSign());
 
         /*
         Log.v(LOG_TAG, "are images null : "  + String.valueOf(artist.getImages() == null));
@@ -94,7 +96,6 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
         private final TextView itemSongTitle;
         private final TextView itemArtistName;
         private final TextView itemStationCallSign;
-        private final TextView itemGenre;
         private Station station;
 
         public ViewHolder(View view) {
@@ -106,7 +107,6 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
             itemSongTitle = (TextView) view.findViewById(R.id.song_title);
             itemArtistName = (TextView) view.findViewById(R.id.artist_name);
             itemStationCallSign = (TextView) view.findViewById(R.id.station_call_sign);
-            itemGenre = (TextView) view.findViewById(R.id.genre);
         }
 
         @Override

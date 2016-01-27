@@ -27,6 +27,7 @@ import com.squareup.otto.Subscribe;
 import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.TopSongsEvent;
+import com.xinay.droid.fm.model.Playlist;
 import com.xinay.droid.fm.model.Song;
 import com.xinay.droid.fm.model.Station;
 import com.xinay.droid.fm.model.TopSongsResponse;
@@ -527,7 +528,8 @@ public class MainActivity extends AppCompatActivity implements
         if (resultsSize > 0) {
             playerManager.setSongs(topSongsResponse.getSongs());
 
-            genresFragmentMap.get(key);
+            GenresFragment fragment = genresFragmentMap.get(key);
+            fragment.setPlaylist();
 
             playerFragmentsList = new ArrayList<PlayerFragment>();
 

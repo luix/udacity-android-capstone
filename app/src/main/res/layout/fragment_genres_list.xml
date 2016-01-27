@@ -2,20 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <!--
-    <android.widget.SearchView
-        android:id="@+id/search_query"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:imeOptions="actionGo"
-        android:lines="1"
-        android:maxLines="1"
-        android:hint="@string/search_hint">
-    </android.widget.SearchView>
-    -->
-
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/search_results"
+        android:id="@+id/songs_list"
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/search_edit_text"
