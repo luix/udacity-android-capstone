@@ -1,5 +1,6 @@
 package com.xinay.droid.fm;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +17,18 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
-import com.xinay.droid.fm.model.Playlist;
+import com.squareup.otto.Subscribe;
+import com.squareup.picasso.Picasso;
+import com.xinay.droid.fm.bus.BusProvider;
+import com.xinay.droid.fm.event.SongArtEvent;
+import com.xinay.droid.fm.model.Song;
+import com.xinay.droid.fm.model.SongArtResponse;
+import com.xinay.droid.fm.model.Track;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -33,16 +43,44 @@ public class GenresFragment extends Fragment {
 
     private final String LOG_TAG = GenresFragment.class.getSimpleName();
 
-    private Playlist playlist;
+    private List<Song> keys;
+    private Map<String, Song> songs;
 
     private GenresListAdapter genresListAdapter;
     private RecyclerView mGenresRecyclerView;
 
-//    private OnFragmentInteractionListener mListener;
+    private String key;
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+
+    //    private OnFragmentInteractionListener mListener;
 
     public GenresFragment() {
         // Required empty public constructor
         //genresListAdapter = new GenresListAdapter();
+        Log.v(LOG_TAG, "GenresFragment - new GenresListAdapter() ");
+//        genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
+
+        keys = new ArrayList<>();
+    }
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface OnFragmentInteractionListener {
+        /**
+         * GenresFragmentCallback for when an item has been selected.
+         */
+        public void onSongSelected(Song song);
     }
 
     /**
@@ -65,18 +103,49 @@ public class GenresFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.v(LOG_TAG, "onCreate");
+        Log.v(LOG_TAG, "onCreate : " + this.toString());
         super.onCreate(savedInstanceState);
+        if (songs == null) {
+            Log.v(LOG_TAG, "getSongsByGenre");
+            initSongs();
+            //PlayerManager.getInstance().getRadioStationsClient().doTopSongs(key);
+        }
 //        if (getArguments() != null) {
 //            mParam1 = getArguments().getString(ARG_PARAM1);
 //            mParam2 = getArguments().getString(ARG_PARAM2);
 //        }
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.v(LOG_TAG, "onDestroy : " + this.toString());
+
+        BusProvider.getInstance().unregister(this);
+        super.onDestroy();
+    }
+
+    private void initSongs() {
+        Log.v(LOG_TAG, "initSongs : " + this.toString());
+
+        List<Song> songs = PlayerManager.getInstance().getSongsByGenre(key);
+
+        Map<String, Song> songMap = new HashMap<>();
+        int idx = 0;
+        for (Song song : songs) {
+            String songKey = this.toString() + idx;
+            Log.v(LOG_TAG, "songKey: " + songKey);
+            songMap.put(songKey, song);
+            idx++;
+        }
+
+        this.setSongs(songMap);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.v(LOG_TAG, "onCreateView");
+        Log.v(LOG_TAG, "onCreateView : " + this.toString());
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_genres_list, container, false);
         //GridView gridview = (GridView)view.findViewById(R.id.gridview);
@@ -88,11 +157,17 @@ public class GenresFragment extends Fragment {
         //CustomAdapter customAdapter = new CustomAdapter(getActivity(), allItems);
         //gridview.setAdapter(customAdapter);
 
-        genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
-        if (playlist != null) {
-            genresListAdapter.setPlaylist(playlist);
+        if (genresListAdapter == null) {
+            Log.v(LOG_TAG, "new GenresListAdapter...");
+            genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
+//            genresListAdapter = new GenresListAdapter();
+        }
+        initSongs();
+        if (songs != null) {
+            genresListAdapter.setSongs(songs);
             genresListAdapter.notifyDataSetChanged();
         }
+        Log.v(LOG_TAG, "mGenresRecyclerView.setAdapter...");
         mGenresRecyclerView.setAdapter(genresListAdapter);
 
 //        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -159,9 +234,58 @@ public class GenresFragment extends Fragment {
         return items;
     }
 
-    public void setPlaylist(Playlist playlist) {
-        this.playlist = playlist;
-        genresListAdapter.setPlaylist(playlist);
+    public void setSongs(Map<String, Song> songs) {
+        Log.v(LOG_TAG, "setSongs : " + this.toString());
+
+        this.songs = songs;
+        if (genresListAdapter == null) {
+            genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
+//            genresListAdapter = new GenresListAdapter();
+        }
+        genresListAdapter.setSongs(this.songs );
         genresListAdapter.notifyDataSetChanged();
+    }
+
+    public Map<String, Song> getSongs() {
+        return songs;
+    }
+
+    @Subscribe
+    public void onSongArtEvent(SongArtEvent event) {
+        Log.v(LOG_TAG, "onSongArtEvent : " + this.toString());
+
+        SongArtResponse songArtResponse = event.response;
+        SongArtResponse.SongArt songArt = songArtResponse.getSongArt();
+        Log.v(LOG_TAG, "onSongArtEvent - song url : " + songArt.getArtUrl());
+
+        String key = songArtResponse.getKey();
+
+        Log.v(LOG_TAG, "onSongArtEvent - song key : " + key);
+
+        if (songs != null) {
+            Song song = songs.get(key);
+
+            if (song != null) {
+                final String albumArtUrl = songArt.getArtUrl();
+                //if (albumArtUrl.indexOf("dar.fm") != -1) albumArtUrl = null;
+                song.setAlbumArtUrl(albumArtUrl);
+                genresListAdapter.notifyDataSetChanged();
+            }
+        }
+
+        // check for a valid Album Art URL
+//        if (albumArtUrl == null) {
+//            if (artist.indexOf(songArt.getArtist()) != -1) {
+//                albumArtUrl = songArt.getArtUrl();
+//                Log.v(LOG_TAG, "bus - unregister: " + this.toString());
+//                // register with the bus to receive events
+//                BusProvider.getInstance().unregister(this);
+//                if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
+//                    Picasso.with(getActivity())
+//                            .load(albumArtUrl)
+//                            .into(mAlbumCover);
+//                }
+//            }
+//        }
     }
 }

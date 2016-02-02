@@ -13,6 +13,8 @@ public class SongArtResponse {
     @SerializedName("result")
     List<SongArt> result;
 
+    String key;
+
     public SongArt getSongArt() {
         if (result != null) {
             return result.get(0);
@@ -47,5 +49,13 @@ public class SongArtResponse {
         public String getTitle() {
             return title;
         }
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }

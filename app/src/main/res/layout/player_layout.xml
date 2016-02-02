@@ -15,7 +15,8 @@
         android:layout_width="320dp"
         android:layout_height="320dp"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/droid_fm" />
 
     <TextView
         android:id="@+id/song_title"

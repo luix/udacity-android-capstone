@@ -191,15 +191,27 @@ public class PlayerFragment extends Fragment {
 
         Log.v(LOG_TAG, "albumArtUrl: " + albumArtUrl);
         if (albumArtUrl != null) {
-            Picasso.with(getActivity())
-                    .load(albumArtUrl)
-                    .into(mAlbumCover);
+            if (albumArtUrl.indexOf("dar.fm") != -1) {
+                mAlbumCover.setImageResource(R.drawable.droid_fm);
+            } else {
+                Picasso.with(getActivity()).setIndicatorsEnabled(true);
+                Picasso.with(getActivity())
+                        .load(albumArtUrl)
+                        .placeholder(R.drawable.droid_fm)
+                        .error(R.drawable.droid_fm)
+                        .fit()
+                        .into(mAlbumCover);
+            }
         } else {
             if (song != null) {
+
+//                String key = getParentFragment().toString();
+                String key = "6125348712";
                 playerManager.getRadioStationsClient().doSongArt(
                         song.getSongArtist(),
                         song.getSongTitle(),
-                        Constants.ALBUM_ART_IMAGE_RESOLUTION
+                        Constants.ALBUM_ART_IMAGE_RESOLUTION,
+                        key
                 );
                 try {
                     Log.v(LOG_TAG, "bus - register: " + this.toString());

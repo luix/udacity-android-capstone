@@ -83,7 +83,7 @@ public class RadioStationsClient {
 
     }
 
-    public void doSongArt(String artist, String title, String res) {
+    public void doSongArt(String artist, String title, String res, final String key) {
         String encodedArtistSearch = "";
         String encodedTitleSearch = "";
         try {
@@ -109,13 +109,14 @@ public class RadioStationsClient {
 
                 Log.v(LOG_TAG, "onResponse code: " + response.code());
 
-                BusProvider.getInstance().post(produceSongArtEvent(response.body()));
+                SongArtResponse songArtResponse = response.body();
+                songArtResponse.setKey(key);
+
+                BusProvider.getInstance().post(produceSongArtEvent(songArtResponse));
 
                 // response.isSuccess() is true if the response code is 2xx
                 if (response.isSuccess()) {
                     Log.v(LOG_TAG, "isSuccess - response: " + response.raw());
-                    SongArtResponse songArtResponse = response.body();
-
                     SongArtResponse.SongArt art = songArtResponse.getSongArt();
                     Log.v(LOG_TAG, art.getTitle() + " (" + art.getArtUrl() + ")");
 

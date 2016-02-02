@@ -33,6 +33,18 @@ public class Song implements Serializable {
     @SerializedName("uberurl")
     UberUrl uberUrl;
 
+    String albumArtUrl;
+
+    String groupKey;
+
+    public String getAlbumArtUrl() {
+        return albumArtUrl;
+    }
+
+    public void setAlbumArtUrl(String albumArtUrl) {
+        this.albumArtUrl = albumArtUrl;
+    }
+
     public String getSongArtist() {
         return songArtist;
     }
@@ -59,5 +71,13 @@ public class Song implements Serializable {
 
     public UberUrl getUberUrl() {
         return uberUrl;
+    }
+
+    public String getGroupKey() {
+        return groupKey;
+    }
+
+    public void setGroupKey(String groupKey) {
+        this.groupKey = groupKey;
     }
 }

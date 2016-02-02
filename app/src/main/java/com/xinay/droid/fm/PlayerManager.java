@@ -19,7 +19,10 @@ import com.xinay.droid.fm.util.Constants;
 import org.parceler.Parcel;
 import org.parceler.Transient;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by luisvivero on 1/17/16.
@@ -36,6 +39,15 @@ public class PlayerManager {
     private static final String ARG_SEARCH_QUERY = "search_query";
     private static final String DEFAULT_SEARCH_QUERY = "Music";
 
+    public static final String[] GENRES_MAP_KEYS = {
+            "Music",
+            "Rock",
+            "80",
+            "90",
+            "Hip Hop",
+            "Classical"
+    };
+
     // The Singleton instance of the PlayerManager Object
     private static PlayerManager instance;
 
@@ -44,7 +56,9 @@ public class PlayerManager {
     // Used for the MediaPlayer interaction
     @Transient private PlayerService playerService;
 
-    // track songs
+    // Genres Map Songs
+    Map<String, List<Song>> genresMapSongs;
+    // Play Now Songs
     List<Song> songs;
 
     // current song playing, paused or selected for start
@@ -58,6 +72,10 @@ public class PlayerManager {
 
     // Private constructor prevents any other class from instantiating
     private PlayerManager () {
+        genresMapSongs = new HashMap<>();
+        for (int i = 0; i < GENRES_MAP_KEYS.length; i++) {
+            genresMapSongs.put(GENRES_MAP_KEYS[i], new ArrayList<Song>());
+        }
     }
 
     // Providing a Global point of access for our PlayerManager Singleton
@@ -109,13 +127,18 @@ public class PlayerManager {
     }
 
     public void startup() {
-        radioStationsClient.doTopSongs("Music");
-        radioStationsClient.doTopSongs("Rock");
-        radioStationsClient.doTopSongs("Hip Hop");
-        radioStationsClient.doTopSongs("80");
-        radioStationsClient.doTopSongs("90");
-        radioStationsClient.doTopSongs("00");
-        radioStationsClient.doTopSongs("Classical");
+
+        for (int i = 0; i < GENRES_MAP_KEYS.length; i++) {
+            radioStationsClient.doTopSongs(GENRES_MAP_KEYS[i]);
+        }
+
+//        radioStationsClient.doTopSongs("Music");
+//        radioStationsClient.doTopSongs("Rock");
+//        radioStationsClient.doTopSongs("Hip Hop");
+//        radioStationsClient.doTopSongs("80");
+//        radioStationsClient.doTopSongs("90");
+//        radioStationsClient.doTopSongs("00");
+//        radioStationsClient.doTopSongs("Classical");
     }
 
     public void onPlayerPlayPause() {
@@ -181,6 +204,36 @@ public class PlayerManager {
             }
         }
         return currentSong;
+    }
+
+//    public Map<String, List<Song>> getGenresMapSongs() {
+//        return genresMapSongs;
+//    }
+//
+//    public void setGenresMapSongs(Map<String, List<Song>> genresMapSongs) {
+//        this.genresMapSongs = genresMapSongs;
+//    }
+
+    public void setSongsByGenre(String key, List<Song> songs) {
+        for (Song song : songs) {
+            song.setGroupKey(key);
+        }
+        genresMapSongs.get(key).addAll(songs);
+
+        if (playerService != null) {
+            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
+            playerService.setList(songs);
+        }
+
+        if (currentSong == null) currentSong = songs.get(0);
+    }
+
+    public List<Song> getSongsByGenre(String key) {
+        if (genresMapSongs.containsKey(key)) {
+            return genresMapSongs.get(key);
+        } else {
+            return null;
+        }
     }
 
     public String getSearchQuery() {

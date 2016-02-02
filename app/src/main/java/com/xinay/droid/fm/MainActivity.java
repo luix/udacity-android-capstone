@@ -8,12 +8,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
-import android.support.v13.app.FragmentPagerAdapter;
+import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -24,10 +23,8 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
-import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.TopSongsEvent;
-import com.xinay.droid.fm.model.Playlist;
 import com.xinay.droid.fm.model.Song;
 import com.xinay.droid.fm.model.Station;
 import com.xinay.droid.fm.model.TopSongsResponse;
@@ -37,16 +34,13 @@ import com.xinay.droid.fm.services.PlayerService;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements
         SearchFragment.OnFragmentInteractionListener,
-        TopTracksFragment.OnFragmentInteractionListener,
+        GenresFragment.OnFragmentInteractionListener,
         PlayerFragment.OnFragmentInteractionListener {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -63,8 +57,11 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mMasterDetailPane;
 
     private List<PlayerFragment> playerFragmentsList;
-    private Map<String, GenresFragment> playerFragmentsMap;
-    private Map<String, GenresFragment> genresFragmentMap;
+    //private Map<String, GenresFragment> playerFragmentsMap;
+
+    private Map<String, GenresFragment> genresFragmentMap = new ArrayMap<>();
+
+    private String topSongsListPlayingKey;
 
     /**
      * The number of pages to show
@@ -82,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements
      */
     private PagerAdapter mPagerAdapter;
 
-    SectionsPagerAdapter mSectionsPagerAdapter;
+    GenresPagerAdapter mGenresPagerAdapter;
 
     ViewPager mViewPager;
 
@@ -93,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements
 //        Parcelable wrapped = Parcels.wrap(tracks);
         //Parcelable wrapped = Parcels.wrap(songs);
         Parcelable wrapped = Parcels.wrap(playerManager);
-        Parcelable wrappedGenresMap = Parcels.wrap(genresFragmentMap);
+//        Parcelable wrappedGenresMap = Parcels.wrap(genresFragmentMap);
 //        Parcelable wrappedFragments = Parcels.wrap(playerFragmentsList);
 
         //Parcelable wrap = Parcels.wrap(playerService);
@@ -102,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements
 //        outState.putParcelable(ARG_SONGS, wrapped);
 //        outState.putString(ARG_SEARCH_QUERY, searchQuery);
         outState.putParcelable(PLAYER_MANAGER_KEY, wrapped);
-        outState.putParcelable(GENRES_FRAGMENTS_MAP_KEY, wrappedGenresMap);
+//        outState.putParcelable(GENRES_FRAGMENTS_MAP_KEY, wrappedGenresMap);
 //        outState.putParcelable(PLAYER_FRAGMENTS_KEY, wrappedFragments);
     }
 
@@ -111,9 +108,35 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
 
+        if (savedInstanceState != null) {
+            Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
+            playerManager = Parcels.unwrap(wrapped);
+            Parcelable wrappedGenres = savedInstanceState.getParcelable(GENRES_FRAGMENTS_MAP_KEY);
+            genresFragmentMap = Parcels.unwrap(wrappedGenres);
+            Parcelable wrappedFragments = savedInstanceState.getParcelable(PLAYER_FRAGMENTS_KEY);
+            playerFragmentsList = Parcels.unwrap(wrappedFragments);
+            Log.v(LOG_TAG, "playerManager unwrapped...");
+        } else {
+
+            playerManager = PlayerManager.getInstance();
+
+            if (playerFragmentsList == null) {
+                Log.v(LOG_TAG, "playerFragmentsList = new ArrayList ");
+                playerFragmentsList = new ArrayList<PlayerFragment>();
+            }
+
+        }
+
         setContentView(R.layout.activity_screen_slide);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //initGenres();
+        Log.v(LOG_TAG, "playerManager.init()...");
+        playerManager.init();
+
+        Log.v(LOG_TAG, "playerManager.startup()...");
+        playerManager.startup();
 
         // Set up the action bar.
 //        final ActionBar actionBar = getSupportActionBar();
@@ -121,16 +144,16 @@ public class MainActivity extends AppCompatActivity implements
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+        mGenresPagerAdapter = new GenresPagerAdapter(getFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setAdapter(mGenresPagerAdapter);
 
         //mPager = (ViewPager) findViewById(R.id.viewpager);
-        //mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
-//        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-//        mPager.setAdapter(mSectionsPagerAdapter);
+        //mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
+//        mGenresPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+//        mPager.setAdapter(mGenresPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
@@ -171,35 +194,18 @@ public class MainActivity extends AppCompatActivity implements
 //        });
 
         // For each of the sections in the app, add a tab to the action bar.
-//        for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
+//        for (int i = 0; i < mGenresPagerAdapter.getCount(); i++) {
 //            // Create a tab with text corresponding to the page title defined by
 //            // the adapter. Also specify this Activity object, which implements
 //            // the TabListener interface, as the callback (listener) for when
 //            // this tab is selected.
-//            actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
+//            actionBar.addTab(actionBar.newTab().setText(mGenresPagerAdapter.getPageTitle(i)).setTabListener(this));
 //        }
 
 
         // register with the bus to receive events
         BusProvider.getInstance().register(this);
 
-        if (savedInstanceState != null) {
-            Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
-            playerManager = Parcels.unwrap(wrapped);
-            Parcelable wrappedGenres = savedInstanceState.getParcelable(GENRES_FRAGMENTS_MAP_KEY);
-            genresFragmentMap = Parcels.unwrap(wrappedGenres);
-//            Parcelable wrappedFragments = savedInstanceState.getParcelable(PLAYER_FRAGMENTS_KEY);
-//            playerFragmentsList = Parcels.unwrap(wrappedFragments);
-            Log.v(LOG_TAG, "playerManager unwrapped...");
-        } else {
-            playerManager = PlayerManager.getInstance();
-            genresFragmentMap = new HashMap<>();
-            Log.v(LOG_TAG, "playerManager.init()...");
-            playerManager.init();
-        }
-
-        Log.v(LOG_TAG, "playerManager.startup()...");
-        playerManager.startup();
 
         if (playerIntent == null || playerManager.getPlayerService() == null) {
             Log.v(LOG_TAG, "playerIntent...");
@@ -217,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements
 //                // Do something after 500ms
 //                // Instantiate a ViewPager and a PagerAdapter.
 //                mPager = (ViewPager) findViewById(R.id.pager);
-//                mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
+//                mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
 //                mPager.setAdapter(mPagerAdapter);
 //            }
 //        }, 500);
@@ -252,6 +258,7 @@ public class MainActivity extends AppCompatActivity implements
 //        }
     }
 
+
     void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
@@ -263,6 +270,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
+        Log.v(LOG_TAG, "onBackPressed");
         if (mViewPager.getCurrentItem() == 0) {
             // If the user is currently looking at the first step, allow the system to handle the
             // Back button. This calls finish() on this activity and pops the back stack.
@@ -324,6 +332,37 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onSongSelected(Song song) {
+        Log.v(LOG_TAG, "onSongSelected - song title: " + song.getSongTitle());
+        Log.v(LOG_TAG, "onSongSelected - group key: " + song.getGroupKey());
+
+        topSongsListPlayingKey = song.getGroupKey();
+
+        //mViewPager = (ViewPager) findViewById(R.id.viewpager);
+        mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
+        mViewPager.setAdapter(mPagerAdapter);
+
+        genresFragmentMap.get(song.getGroupKey()).getSongs();
+
+        if (findViewById(R.id.fragment_container) != null) {
+
+            Log.v(LOG_TAG, "playerFragment...");
+
+            //ArtistListFragment artistListFragment = new ArtistListFragment();
+            PlayerFragment playerFragment = new PlayerFragment();
+            playerFragment.setSong(song);
+
+            playerFragmentsList.add(playerFragment);
+
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, playerFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
+
 //    @Override
 //    public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
 //        // When the given tab is selected, switch to the corresponding page in
@@ -345,40 +384,44 @@ public class MainActivity extends AppCompatActivity implements
      * A {@link android.support.v4.app.FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        private final List<Fragment> mFragmentList = new ArrayList<>();
-        private final List<String> mFragmentTitleList = new ArrayList<>();
+    public class GenresPagerAdapter extends FragmentStatePagerAdapter {
+//        private final List<Fragment> mFragmentList = new ArrayList<>();
+//        private final List<String> mFragmentTitleList = new ArrayList<>();
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        private final String[] titles = {
+                "Top USA",
+                "Rock",
+                "80's",
+                "90's",
+                "Hip Hop",
+                "Clasica"
+        };
+
+        public GenresPagerAdapter(FragmentManager fm) {
             super(fm);
-
-            this.addFrag(new GenresFragment(), "R&B");
-            this.addFrag(new GenresFragment(), "Rock");
-            this.addFrag(new GenresFragment(), "Pop");
-            this.addFrag(new GenresFragment(), "Latino");
-            this.addFrag(new GenresFragment(), "Top USA");
-            this.addFrag(new GenresFragment(), "Christian");
-            this.addFrag(new GenresFragment(), "Classical");
-            this.addFrag(new GenresFragment(), "Hip Hop");
-            this.addFrag(new GenresFragment(), "80's");
-            this.addFrag(new GenresFragment(), "90's");
         }
 
         @Override
         public Fragment getItem(int position) {
-            return mFragmentList.get(position);
+            if (genresFragmentMap.size() == position) {
+                final GenresFragment fragment = new GenresFragment();
+                fragment.setKey(PlayerManager.GENRES_MAP_KEYS[position]);
+                this.addFrag(PlayerManager.GENRES_MAP_KEYS[position], fragment);
+                return fragment;
+            } else {
+                return genresFragmentMap.get(PlayerManager.GENRES_MAP_KEYS[position]);
+            }
         }
 
-        public void addFrag(Fragment fragment, String title) {
-            mFragmentList.add(fragment);
-            mFragmentTitleList.add(title);
+        public void addFrag(String key, GenresFragment fragment) {
+            genresFragmentMap.put(key, fragment);
         }
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
-            // return 3;
-            return mFragmentList.size();
+            // Show 6 total pages.
+            return 6;
+            //return genresFragmentMap.size();
         }
 
         @Override
@@ -392,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements
 //                case 2:
 //                    return getString(R.string.title_section3).toUpperCase(l);
 //            }
-            return mFragmentTitleList.get(position);
+            return titles[position];
         }
     }
 
@@ -400,8 +443,8 @@ public class MainActivity extends AppCompatActivity implements
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private class ScreenSlidePagerAdapter extends FragmentPagerAdapter {
-        public ScreenSlidePagerAdapter(FragmentManager fm) {
+    private class PlayNowSlidePagerAdapter extends FragmentStatePagerAdapter {
+        public PlayNowSlidePagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -409,7 +452,7 @@ public class MainActivity extends AppCompatActivity implements
         public Fragment getItem(int position) {
             if (playerFragmentsList.size() == position) {
                 PlayerFragment playerFragment = new PlayerFragment();
-                playerFragment.setSong(playerManager.getSongs().get(position));
+                playerFragment.setSong(playerManager.getSongsByGenre(topSongsListPlayingKey).get(position));
                 playerFragmentsList.add(position, playerFragment);
                 return playerFragment;
             } else {
@@ -477,7 +520,7 @@ public class MainActivity extends AppCompatActivity implements
     */
 
 
-    @Override
+    //@Override
     public void onTrackSelected(Track track) {
         Log.v(LOG_TAG, "onTrackSelected - put extra: track id=" + track.getId());
 
@@ -526,15 +569,34 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "onTopSongsEvent - songs size : " + resultsSize);
 
         if (resultsSize > 0) {
-            playerManager.setSongs(topSongsResponse.getSongs());
+            //playerManager.setSongs(topSongsResponse.getSongs());
 
-            GenresFragment fragment = genresFragmentMap.get(key);
-            fragment.setPlaylist();
+            playerManager.setSongsByGenre(key, topSongsResponse.getSongs());
 
-            playerFragmentsList = new ArrayList<PlayerFragment>();
+
+//            GenresFragment fragment = genresFragmentMap.get(key);
+//            if (fragment != null) {
+//                Log.v(LOG_TAG, "GenresFragment: " + fragment.toString());
+//
+//                List<Song> songs = topSongsResponse.getSongs();
+//
+//                playerManager.setSongs(songs);
+//
+//                Map<String, Song> songMap = new HashMap<>();
+//                int idx = 0;
+//                for (Song song : songs) {
+//                    String songKey = fragment.toString() + idx;
+//                    Log.v(LOG_TAG, "songKey: " + songKey);
+//                    songMap.put(songKey, song);
+//                    idx++;
+//                }
+//                fragment.setSongs(songMap);
+//            }
+
+            //playerFragmentsList = new ArrayList<PlayerFragment>();
 
 //            mViewPager = (ViewPager) findViewById(R.id.viewpager);
-//            mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
+//            mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
 //            mViewPager.setAdapter(mPagerAdapter);
 
         } else {
