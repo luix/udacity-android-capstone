@@ -473,15 +473,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public Song onPlayerNext() {
-        Log.v(LOG_TAG, "onPlayerNext");
-        return playerManager.onPlayerNext();
-    }
-
-    @Override
-    public Song onPlayerPrev() {
-        Log.v(LOG_TAG, "onPlayerPrev");
-        return playerManager.onPlayerPrev();
+    public void onPreparePlayer(Song song) {
+        Log.v(LOG_TAG, "onPreparePlayer");
+        playerManager.onPrepareSong(song);
     }
 
     @Override

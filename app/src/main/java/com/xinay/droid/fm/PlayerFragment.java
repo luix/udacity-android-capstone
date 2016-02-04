@@ -127,8 +127,7 @@ public class PlayerFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         public void onPlayerPlayPause();
-        public Song onPlayerNext();
-        public Song onPlayerPrev();
+        public void onPreparePlayer(Song song);
         public boolean isPlaying();
     }
 
@@ -226,8 +225,8 @@ public class PlayerFragment extends Fragment {
         mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //playPause();
-                skip();
+                playPause(song);
+                //skip();
             }
         });
 
@@ -248,10 +247,11 @@ public class PlayerFragment extends Fragment {
 //        return dialog;
 //    }
 
-    private void playPause() {
+    private void playPause(Song song) {
         Log.v(LOG_TAG, "playPause()");
         if (mListener != null) {
-            mListener.onPlayerPlayPause();
+            mListener.onPreparePlayer(song);
+            //mListener.onPlayerPlayPause();
             if (mListener.isPlaying()) {
                 mPlayPauseButton.setImageResource(android.R.drawable.ic_media_play);
             } else {
@@ -260,19 +260,19 @@ public class PlayerFragment extends Fragment {
         }
     }
 
-    private void skip() {
-        if (mListener != null) {
-            song = mListener.onPlayerNext();
-            //updateTrackInfo();
-        }
-    }
+//    private void skip() {
+//        if (mListener != null) {
+//            song = mListener.onPlayerNext();
+//            //updateTrackInfo();
+//        }
+//    }
 
-    private void prev() {
-        if (mListener != null) {
-            song = mListener.onPlayerPrev();
-            //updateTrackInfo();
-        }
-    }
+//    private void prev() {
+//        if (mListener != null) {
+//            song = mListener.onPlayerPrev();
+//            //updateTrackInfo();
+//        }
+//    }
 
     private void updatePosition(){
         handler.removeCallbacks(updatePositionRunnable);

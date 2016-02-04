@@ -148,24 +148,8 @@ public class PlayerManager {
         }
     }
 
-    public Song onPlayerNext() {
-        Log.v(LOG_TAG, "onPlayerNext");
-        if (playerService != null) {
-            playerService.next();
-        }
-        trackIndex++;
-        if (trackIndex >= songs.size()) trackIndex = 0;
-        return songs.get(trackIndex);
-    }
-
-    public Song onPlayerPrev() {
-        Log.v(LOG_TAG, "onPlayerPrev");
-        if (playerService != null) {
-            playerService.prev();
-        }
-        trackIndex--;
-        if (trackIndex < 0) trackIndex = songs.size() - 1;
-        return songs.get(trackIndex);
+    public void onPrepareSong(Song song) {
+        playerService.setSong(song);
     }
 
     public boolean isPlaying() {
@@ -176,16 +160,36 @@ public class PlayerManager {
         }
     }
 
+//    public Song onPlayerNext() {
+//        Log.v(LOG_TAG, "onPlayerNext");
+//        if (playerService != null) {
+//            playerService.next();
+//        }
+//        trackIndex++;
+//        if (trackIndex >= songs.size()) trackIndex = 0;
+//        return songs.get(trackIndex);
+//    }
+
+//    public Song onPlayerPrev() {
+//        Log.v(LOG_TAG, "onPlayerPrev");
+//        if (playerService != null) {
+//            playerService.prev();
+//        }
+//        trackIndex--;
+//        if (trackIndex < 0) trackIndex = songs.size() - 1;
+//        return songs.get(trackIndex);
+//    }
+
 
     // Getters & Setters
 
     public void setSongs(List<Song> songs) {
         Log.v(LOG_TAG, "setTracks www - songs.size()=" + songs.size());
         this.songs = songs;
-        if (playerService != null) {
-            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
-            playerService.setList(songs);
-        }
+//        if (playerService != null) {
+//            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
+//            playerService.setList(songs);
+//        }
 
         if (currentSong == null) currentSong = songs.get(0);
     }
@@ -220,10 +224,10 @@ public class PlayerManager {
         }
         genresMapSongs.get(key).addAll(songs);
 
-        if (playerService != null) {
-            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
-            playerService.setList(songs);
-        }
+//        if (playerService != null) {
+//            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
+//            playerService.setList(songs);
+//        }
 
         if (currentSong == null) currentSong = songs.get(0);
     }

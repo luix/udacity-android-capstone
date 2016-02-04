@@ -27,14 +27,8 @@ public class PlayerService extends Service implements
 
     // media player
     private MediaPlayer player;
-    // track list
-    private List<Track> tracks;
-    // songs list
-    private List<Song> songs;
-    // current song position
-    private int songIndex;
-    // current track position
-    private int trackIndex;
+    // song
+    private Song song;
     // player binder
     private final IBinder playerBinder = new PlayerBinder();
 
@@ -42,8 +36,6 @@ public class PlayerService extends Service implements
     public void onCreate() {
         // create the service
         super.onCreate();
-        // initialize position
-        trackIndex = 0;
         // create player
         player = new MediaPlayer();
 
@@ -61,20 +53,22 @@ public class PlayerService extends Service implements
         player.setOnErrorListener(this);
     }
 
-    /*public void setList(List<Track> tracks){
-        this.tracks = tracks;
-        for (int i = 0; i < tracks.size(); i++) {
-            Track track = tracks.get(i);
-            Log.v(LOG_TAG, "track[" + i + "] , name: " + track.getName() + " , preview: " + track.getPreviewUrl());
+    public void setSong(Song song){
+        Log.v(LOG_TAG, "playSong()");
+        Log.v(LOG_TAG, "uber station url: " + song.getUberUrl());
+        this.song = song;
+        try{
+            Log.v(LOG_TAG, "player.reset()");
+            player.reset();
+            String url = song.getUberUrl().getUrl();
+            Log.v(LOG_TAG, "player.setDataSource() , url: " + url);
+            player.setDataSource(url);
         }
-    }*/
-
-    public void setList(List<Song> songs){
-        this.songs = songs;
-        for (int i = 0; i < songs.size(); i++) {
-            Song song = songs.get(i);
-            Log.v(LOG_TAG, "song[" + i + "] , title: " + song.getSongTitle() + " , preview: " + song.getUberUrl());
+        catch(Exception ex){
+            Log.e(LOG_TAG, "Error setting data source", ex);
         }
+        Log.v(LOG_TAG, "player.prepareAsync()");
+        player.prepareAsync();
     }
 
     @Override
@@ -91,11 +85,12 @@ public class PlayerService extends Service implements
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        next();
+        Log.v(LOG_TAG, "onCompletion()");
     }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
+        Log.v(LOG_TAG, "onError()");
         return false;
     }
 
@@ -103,16 +98,6 @@ public class PlayerService extends Service implements
     public void onPrepared(MediaPlayer mediaPlayer) {
         //start playback
         mediaPlayer.start();
-    }
-
-    public void setTrack(int trackIndex){
-        Log.v(LOG_TAG, "setTrack - trackIndex: " + trackIndex);
-        this.trackIndex = trackIndex;
-    }
-
-    public void setSong(int songIndex){
-        Log.v(LOG_TAG, "setSong - songIndex: " + songIndex);
-        this.songIndex = songIndex;
     }
 
     public void playPause() {
@@ -123,48 +108,8 @@ public class PlayerService extends Service implements
         }
     }
 
-    public void next() {
-        trackIndex++;
-        if (trackIndex >= songs.size()) trackIndex = 0;
-        playSong();
-    }
-
-    public void prev() {
-        trackIndex--;
-        if (trackIndex < 0) trackIndex = songs.size() - 1;
-        playSong();
-    }
-
-    public void seekTo(int progress) {
-        player.pause();
-        player.seekTo(progress);
-        player.start();
-    }
-
-    public int getCurrentPosition() {
-        return player.getCurrentPosition();
-    }
-
-    public int getSongDuration() {
-        return player.getDuration();
-    }
-
     public boolean isPlaying() {
         return player.isPlaying();
-    }
-
-    public void playSong(){
-        try{
-            player.reset();
-            Song song = songs.get(trackIndex);
-            String url = song.getUberUrl().getUrl();
-            Log.v(LOG_TAG, "playSong() - track[" + trackIndex + "] , title: " + song.getSongTitle() + " , url: " + url);
-            player.setDataSource(url);
-        }
-        catch(Exception ex){
-            Log.e(LOG_TAG, "Error setting data source", ex);
-        }
-        player.prepareAsync();
     }
 
     public class PlayerBinder extends Binder {
