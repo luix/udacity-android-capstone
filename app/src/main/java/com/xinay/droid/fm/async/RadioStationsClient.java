@@ -62,7 +62,7 @@ public class RadioStationsClient {
         String searchTerms;
     }
 
-    interface RadioStationsWebServices {
+    private interface RadioStationsWebServices {
 
         @GET("/playlist.php")
         Call<PlaylistResponse> playlist(
@@ -196,19 +196,19 @@ public class RadioStationsClient {
     }
 
     @Produce
-    public TopSongsEvent produceTopSongsEvent(TopSongsResponse topSongsResponse){
+    TopSongsEvent produceTopSongsEvent(TopSongsResponse topSongsResponse){
         Log.v(LOG_TAG, "produceTopSongsEvent...");
         return new TopSongsEvent(topSongsResponse);
     }
 
     @Produce
-    public SongArtEvent produceSongArtEvent(SongArtResponse songArtResponse){
+    SongArtEvent produceSongArtEvent(SongArtResponse songArtResponse){
         Log.v(LOG_TAG, "produceSongArtEvent...");
         return new SongArtEvent(songArtResponse);
     }
 
     @Produce
-    public TopTracksEvent produceTopTracksEvent(TopTracksResponse tracksResponse){
+    TopTracksEvent produceTopTracksEvent(TopTracksResponse tracksResponse){
         return new TopTracksEvent(tracksResponse);
     }
 

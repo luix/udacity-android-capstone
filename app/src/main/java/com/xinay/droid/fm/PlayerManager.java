@@ -7,11 +7,16 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.squareup.otto.Subscribe;
 import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.async.RadioStationsClient;
+import com.xinay.droid.fm.bus.BusProvider;
+import com.xinay.droid.fm.event.TopSongsEvent;
 import com.xinay.droid.fm.model.Artist;
 import com.xinay.droid.fm.model.Song;
+import com.xinay.droid.fm.model.TopSongsResponse;
 import com.xinay.droid.fm.model.Track;
 import com.xinay.droid.fm.services.PlayerService;
 import com.xinay.droid.fm.util.Constants;
@@ -76,6 +81,9 @@ public class PlayerManager {
         for (int i = 0; i < GENRES_MAP_KEYS.length; i++) {
             genresMapSongs.put(GENRES_MAP_KEYS[i], new ArrayList<Song>());
         }
+
+        // register with the bus to receive events
+        BusProvider.getInstance().register(this);
     }
 
     // Providing a Global point of access for our PlayerManager Singleton
@@ -210,7 +218,11 @@ public class PlayerManager {
         return currentSong;
     }
 
-//    public Map<String, List<Song>> getGenresMapSongs() {
+    public void setCurrentSong(Song currentSong) {
+        this.currentSong = currentSong;
+    }
+
+    //    public Map<String, List<Song>> getGenresMapSongs() {
 //        return genresMapSongs;
 //    }
 //
@@ -246,5 +258,55 @@ public class PlayerManager {
 
     public int getTrackIndex() {
         return trackIndex;
+    }
+
+
+    @Subscribe
+    public void onTopSongsEvent(TopSongsEvent event) {
+        Log.v(LOG_TAG, "onTopSongsEvent...");
+
+        TopSongsResponse topSongsResponse = event.response;
+
+        int resultsSize = topSongsResponse.getSongs().size();
+
+        String key = topSongsResponse.getKey();
+
+        Log.v(LOG_TAG, "onTopSongsEvent - songs key : " + key);
+        Log.v(LOG_TAG, "onTopSongsEvent - songs size : " + resultsSize);
+
+        if (resultsSize > 0) {
+            //playerManager.setSongs(topSongsResponse.getSongs());
+
+            setSongsByGenre(key, topSongsResponse.getSongs());
+
+
+//            GenresFragment fragment = genresFragmentMap.get(key);
+//            if (fragment != null) {
+//                Log.v(LOG_TAG, "GenresFragment: " + fragment.toString());
+//
+//                List<Song> songs = topSongsResponse.getSongs();
+//
+//                playerManager.setSongs(songs);
+//
+//                Map<String, Song> songMap = new HashMap<>();
+//                int idx = 0;
+//                for (Song song : songs) {
+//                    String songKey = fragment.toString() + idx;
+//                    Log.v(LOG_TAG, "songKey: " + songKey);
+//                    songMap.put(songKey, song);
+//                    idx++;
+//                }
+//                fragment.setSongs(songMap);
+//            }
+
+            //playerFragmentsList = new ArrayList<PlayerFragment>();
+
+//            mViewPager = (ViewPager) findViewById(R.id.viewpager);
+//            mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
+//            mViewPager.setAdapter(mPagerAdapter);
+
+//        } else {
+//            Toast.makeText(this, String.format(getResources().getString(R.string.search_results_hint)), Toast.LENGTH_LONG).show();
+        }
     }
 }

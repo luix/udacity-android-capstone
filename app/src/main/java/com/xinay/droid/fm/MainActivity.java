@@ -19,6 +19,7 @@ import android.util.Log;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.SearchView;
 import android.widget.Toast;
 
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements
     GenresPagerAdapter mGenresPagerAdapter;
 
     ViewPager mViewPager;
+    TabLayout mTabLayout;
 
 
     @Override
@@ -155,25 +157,25 @@ public class MainActivity extends AppCompatActivity implements
 //        mGenresPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
 //        mPager.setAdapter(mGenresPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+        mTabLayout = (TabLayout) findViewById(R.id.tabs);
+        mTabLayout.setupWithViewPager(mViewPager);
 
 
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        mTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 mViewPager.setCurrentItem(tab.getPosition());
-                switch (tab.getPosition()) {
-                    case 0:
-                        showToast("One");
-                        break;
-                    case 1:
-                        showToast("Two");
-                        break;
-                    case 2:
-                        showToast("Three");
-                        break;
-                }
+//                switch (tab.getPosition()) {
+//                    case 0:
+//                        showToast("One");
+//                        break;
+//                    case 1:
+//                        showToast("Two");
+//                        break;
+//                    case 2:
+//                        showToast("Three");
+//                        break;
+//                }
             }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
@@ -201,11 +203,6 @@ public class MainActivity extends AppCompatActivity implements
 //            // this tab is selected.
 //            actionBar.addTab(actionBar.newTab().setText(mGenresPagerAdapter.getPageTitle(i)).setTabListener(this));
 //        }
-
-
-        // register with the bus to receive events
-        BusProvider.getInstance().register(this);
-
 
         if (playerIntent == null || playerManager.getPlayerService() == null) {
             Log.v(LOG_TAG, "playerIntent...");
@@ -259,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
-    void showToast(String msg) {
+    public void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
@@ -271,19 +268,28 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onBackPressed() {
         Log.v(LOG_TAG, "onBackPressed");
-        if (mViewPager.getCurrentItem() == 0) {
-            // If the user is currently looking at the first step, allow the system to handle the
-            // Back button. This calls finish() on this activity and pops the back stack.
-            int count = getFragmentManager().getBackStackEntryCount();
-            if (count == 0) {
-                super.onBackPressed();
-            } else {
-                getFragmentManager().popBackStack();
-            }
 
+        if (mViewPager.getAdapter() == mGenresPagerAdapter) {
+
+            if (mViewPager.getCurrentItem() == 0) {
+                // If the user is currently looking at the first step, allow the system to handle the
+                // Back button. This calls finish() on this activity and pops the back stack.
+                int count = getFragmentManager().getBackStackEntryCount();
+                if (count == 0) {
+                    super.onBackPressed();
+                } else {
+                    getFragmentManager().popBackStack();
+                }
+
+            } else {
+                // Otherwise, select the previous step.
+                mViewPager.setCurrentItem(mViewPager.getCurrentItem() - 1);
+            }
         } else {
-            // Otherwise, select the previous step.
-            mViewPager.setCurrentItem(mViewPager.getCurrentItem() - 1);
+            mViewPager.setAdapter(mGenresPagerAdapter);
+            mTabLayout.setupWithViewPager(mViewPager);
+            mTabLayout.setVisibility(View.VISIBLE);
+            mPagerAdapter = null;
         }
     }
 
@@ -330,37 +336,6 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onSongSelected(Song song) {
-        Log.v(LOG_TAG, "onSongSelected - song title: " + song.getSongTitle());
-        Log.v(LOG_TAG, "onSongSelected - group key: " + song.getGroupKey());
-
-        topSongsListPlayingKey = song.getGroupKey();
-
-        //mViewPager = (ViewPager) findViewById(R.id.viewpager);
-        mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
-        mViewPager.setAdapter(mPagerAdapter);
-
-        genresFragmentMap.get(song.getGroupKey()).getSongs();
-
-        if (findViewById(R.id.fragment_container) != null) {
-
-            Log.v(LOG_TAG, "playerFragment...");
-
-            //ArtistListFragment artistListFragment = new ArtistListFragment();
-            PlayerFragment playerFragment = new PlayerFragment();
-            playerFragment.setSong(song);
-
-            playerFragmentsList.add(playerFragment);
-
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, playerFragment)
-                    .addToBackStack(null)
-                    .commit();
-        }
     }
 
 //    @Override
@@ -419,8 +394,7 @@ public class MainActivity extends AppCompatActivity implements
 
         @Override
         public int getCount() {
-            // Show 6 total pages.
-            return 6;
+            return titles.length;
             //return genresFragmentMap.size();
         }
 
@@ -461,8 +435,13 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         @Override
+        public CharSequence getPageTitle(int position) {
+            return String.valueOf(position);
+        }
+
+        @Override
         public int getCount() {
-            return NUM_PAGES;
+            return playerFragmentsList.size();
         }
     }
 
@@ -483,6 +462,57 @@ public class MainActivity extends AppCompatActivity implements
         return playerManager.isPlaying();
     }
 
+    @Override
+    public void onSongSelected(Song song) {
+        Log.v(LOG_TAG, "onSongSelected - song title: " + song.getSongTitle());
+        Log.v(LOG_TAG, "onSongSelected - group key: " + song.getGroupKey());
+
+        topSongsListPlayingKey = song.getGroupKey();
+
+        playerManager.setCurrentSong(song);
+        List<Song> songs = playerManager.getSongsByGenre(song.getGroupKey());
+        playerManager.setSongs(songs);
+
+        int songIndex = 0;
+        playerFragmentsList = new ArrayList<PlayerFragment>();
+        for (int i = 0; i < songs.size(); i++) {
+            PlayerFragment playerFragment = new PlayerFragment();
+            Song songInList = playerManager.getSongsByGenre(topSongsListPlayingKey).get(i);
+            if (songInList.getSongTitle().equals(song.getSongTitle())) songIndex = i;
+            playerFragment.setSong(songInList);
+            playerFragmentsList.add(i, playerFragment);
+        }
+//        playerFragmentsList.notify();
+
+        //mViewPager = (ViewPager) findViewById(R.id.viewpager);
+        mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
+//        mViewPager.clearOnPageChangeListeners();
+        mViewPager.setAdapter(mPagerAdapter);
+        mTabLayout.setupWithViewPager(mViewPager);
+        mTabLayout.setVisibility(View.INVISIBLE);
+        mPagerAdapter.notifyDataSetChanged();
+//        mViewPager.notify();
+
+        Log.v(LOG_TAG, "songIndex: " + songIndex);
+        Log.v(LOG_TAG, "mViewPager.getChildCount(): " + mViewPager.getChildCount());
+        mViewPager.setCurrentItem(songIndex);
+
+//        if (findViewById(R.id.fragment_container) != null) {
+//            Log.v(LOG_TAG, "playerFragment...");
+            //ArtistListFragment artistListFragment = new ArtistListFragment();
+//            PlayerFragment playerFragment = new PlayerFragment();
+//            playerFragment.setSong(song);
+//
+//            playerFragmentsList.add(playerFragment);
+
+
+            // Add the fragment to the 'fragment_container' FrameLayout
+//            getFragmentManager().beginTransaction()
+//                    .add(R.id.fragment_container, playerFragmentsList.get(songIndex))
+//                    .addToBackStack(null)
+//                    .commit();
+//        }
+    }
 
     /*
     @Override
@@ -549,52 +579,4 @@ public class MainActivity extends AppCompatActivity implements
         FragmentManager fragmentManager = getFragmentManager();
     }
 
-    @Subscribe
-    public void onTopSongsEvent(TopSongsEvent event) {
-        Log.v(LOG_TAG, "onTopSongsEvent...");
-
-        TopSongsResponse topSongsResponse = event.response;
-
-        int resultsSize = topSongsResponse.getSongs().size();
-
-        String key = topSongsResponse.getKey();
-
-        Log.v(LOG_TAG, "onTopSongsEvent - songs key : " + key);
-        Log.v(LOG_TAG, "onTopSongsEvent - songs size : " + resultsSize);
-
-        if (resultsSize > 0) {
-            //playerManager.setSongs(topSongsResponse.getSongs());
-
-            playerManager.setSongsByGenre(key, topSongsResponse.getSongs());
-
-
-//            GenresFragment fragment = genresFragmentMap.get(key);
-//            if (fragment != null) {
-//                Log.v(LOG_TAG, "GenresFragment: " + fragment.toString());
-//
-//                List<Song> songs = topSongsResponse.getSongs();
-//
-//                playerManager.setSongs(songs);
-//
-//                Map<String, Song> songMap = new HashMap<>();
-//                int idx = 0;
-//                for (Song song : songs) {
-//                    String songKey = fragment.toString() + idx;
-//                    Log.v(LOG_TAG, "songKey: " + songKey);
-//                    songMap.put(songKey, song);
-//                    idx++;
-//                }
-//                fragment.setSongs(songMap);
-//            }
-
-            //playerFragmentsList = new ArrayList<PlayerFragment>();
-
-//            mViewPager = (ViewPager) findViewById(R.id.viewpager);
-//            mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
-//            mViewPager.setAdapter(mPagerAdapter);
-
-        } else {
-            Toast.makeText(this, String.format(getResources().getString(R.string.search_results_hint)), Toast.LENGTH_LONG).show();
-        }
-    }
 }
