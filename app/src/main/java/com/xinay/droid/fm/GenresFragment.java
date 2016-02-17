@@ -1,20 +1,29 @@
 package com.xinay.droid.fm;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.app.SharedElementCallback;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
@@ -36,12 +45,15 @@ import java.util.Map;
  * Activities that contain this fragment must implement the
  * {@link GenresFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link GenresFragment#newInstance} factory method to
+ * Use the {link GenresFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class GenresFragment extends Fragment {
 
     private final String LOG_TAG = GenresFragment.class.getSimpleName();
+
+    static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
+    static final String EXTRA_CURRENT_ALBUM_POSITION = "extra_current_item_position";
 
     private List<Song> keys;
     private Map<String, Song> songs;
@@ -58,6 +70,45 @@ public class GenresFragment extends Fragment {
     public void setKey(String key) {
         this.key = key;
     }
+
+    private Bundle mTmpReenterState;
+
+    private final SharedElementCallback mCallback = new SharedElementCallback() {
+        @Override
+        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+            if (mTmpReenterState != null) {
+                int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
+                int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
+                if (startingPosition != currentPosition) {
+                    // If startingPosition != currentPosition the user must have swiped to a
+                    // different page in the DetailsActivity. We must update the shared element
+                    // so that the correct one falls into place.
+                    String newTransitionName = key;
+                    View newSharedElement = mGenresRecyclerView.findViewWithTag(newTransitionName);
+                    if (newSharedElement != null) {
+                        names.clear();
+                        names.add(newTransitionName);
+                        sharedElements.clear();
+                        sharedElements.put(newTransitionName, newSharedElement);
+                    }
+                }
+
+                mTmpReenterState = null;
+//            } else {
+//                // If mTmpReenterState is null, then the activity is exiting.
+//                View navigationBar = findViewById(android.R.id.navigationBarBackground);
+//                View statusBar = findViewById(android.R.id.statusBarBackground);
+//                if (navigationBar != null) {
+//                    names.add(navigationBar.getTransitionName());
+//                    sharedElements.put(navigationBar.getTransitionName(), navigationBar);
+//                }
+//                if (statusBar != null) {
+//                    names.add(statusBar.getTransitionName());
+//                    sharedElements.put(statusBar.getTransitionName(), statusBar);
+//                }
+            }
+        }
+    };
 
 
     //    private OnFragmentInteractionListener mListener;
@@ -80,15 +131,15 @@ public class GenresFragment extends Fragment {
         /**
          * GenresFragmentCallback for when an item has been selected.
          */
-        public void onSongSelected(Song song);
+        public void onSongSelected(Song song, ImageView imageView);
     }
 
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * param param1 Parameter 1.
+     * param param2 Parameter 2.
      * @return A new instance of fragment GenresFragment.
      */
     // TODO: Rename and change types and number of parameters
@@ -127,26 +178,25 @@ public class GenresFragment extends Fragment {
 
     private void initSongs() {
         Log.v(LOG_TAG, "initSongs : " + this.toString());
-
         List<Song> songs = PlayerManager.getInstance().getSongsByGenre(key);
-
-        Map<String, Song> songMap = new HashMap<>();
-        int idx = 0;
-        for (Song song : songs) {
-            String songKey = this.toString() + idx;
-            Log.v(LOG_TAG, "songKey: " + songKey);
-            songMap.put(songKey, song);
-            idx++;
+        if (songs != null) {
+            Map<String, Song> songMap = new HashMap<>();
+            int idx = 0;
+            for (Song song : songs) {
+                String songKey = this.toString() + idx;
+                Log.v(LOG_TAG, "songKey: " + songKey);
+                songMap.put(songKey, song);
+                idx++;
+            }
+            this.setSongs(songMap);
         }
-
-        this.setSongs(songMap);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView : " + this.toString());
-        // Inflate the layout for this fragment
+        // Inflate the layout for this fragmentr
         View view = inflater.inflate(R.layout.fragment_genres_list, container, false);
         //GridView gridview = (GridView)view.findViewById(R.id.gridview);
 
@@ -170,6 +220,23 @@ public class GenresFragment extends Fragment {
         Log.v(LOG_TAG, "mGenresRecyclerView.setAdapter...");
         mGenresRecyclerView.setAdapter(genresListAdapter);
 
+        if (savedInstanceState!=null) {
+            int startingPosition = savedInstanceState.getInt(EXTRA_STARTING_ALBUM_POSITION);
+            int currentPosition = savedInstanceState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
+            if (startingPosition != currentPosition) {
+                mGenresRecyclerView.scrollToPosition(currentPosition);
+            }
+            mGenresRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    mGenresRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                    // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
+                    mGenresRecyclerView.requestLayout();
+                    return true;
+                }
+            });
+        }
+
 //        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //            @Override
 //            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -177,6 +244,14 @@ public class GenresFragment extends Fragment {
 //            }
 //        });
         return view;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onViewCreated()");
+        super.onViewCreated(view, savedInstanceState);
+        Log.v(LOG_TAG, "genresListAdapter.notifyDataSetChanged()...");
+        genresListAdapter.notifyDataSetChanged();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -202,6 +277,68 @@ public class GenresFragment extends Fragment {
 //        super.onDetach();
 //        mListener = null;
 //    }
+
+
+/*    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        String imageTransitionName = "";
+        String textTransitionName = "";
+
+        ImageView imageView = (ImageView) view.findViewById(R.id.album_art);
+        //TextView textView = (TextView) view.findViewById(R.id.textView);
+
+        //ImageView staticImage = (ImageView) getView().findViewById(R.id.imageView);
+
+        PlayerFragment endFragment = new PlayerFragment();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setSharedElementReturnTransition(TransitionInflater.from(
+                    getActivity()).inflateTransition(R.transition.change_image_trans));
+            setExitTransition(TransitionInflater.from(
+                    getActivity()).inflateTransition(android.R.transition.fade));
+
+            endFragment.setSharedElementEnterTransition(TransitionInflater.from(
+                    getActivity()).inflateTransition(R.transition.change_image_trans));
+            endFragment.setEnterTransition(TransitionInflater.from(
+                    getActivity()).inflateTransition(android.R.transition.fade));
+
+            imageTransitionName = imageView.getTransitionName();
+            //textTransitionName = textView.getTransitionName();
+
+            // Create new fragment to add (Fragment B)
+            Fragment fragment = PlayerFragment.newInstance();
+            fragment.setSharedElementEnterTransition(TransitionInflater.from(getActivity()).inflateTransition(R.transition.change_image_trans));
+            fragment.setEnterTransition(TransitionInflater.from(getActivity()).inflateTransition(android.R.transition.explode));
+
+            // Our shared element (in Fragment A)
+            //mProductImage   = (ImageView) mLayout.findViewById(R.id.product_detail_image);
+
+            // Add Fragment B
+            FragmentTransaction ft = getFragmentManager().beginTransaction()
+                    .replace(R.id.container, fragment)
+                    .addToBackStack("transaction")
+                    .addSharedElement(imageView, "MyTransition");
+            ft.commit();
+
+
+        }
+
+        Bundle bundle = new Bundle();
+        bundle.putString("TRANS_NAME", imageTransitionName);
+        //bundle.putString("ACTION", textView.getText().toString());
+        //bundle.putString("TRANS_TEXT", textTransitionName);
+        bundle.putParcelable("IMAGE", ((BitmapDrawable) imageView.getDrawable()).getBitmap());
+        endFragment.setArguments(bundle);
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, endFragment)
+                .addToBackStack("Payment")
+                .addSharedElement(imageView, imageTransitionName)
+                //.addSharedElement(textView, textTransitionName)
+                //.addSharedElement(staticImage, getString(R.string.fragment_image_trans))
+                .commit();
+    }*/
+
 
     /**
      * This interface must be implemented by activities that contain this

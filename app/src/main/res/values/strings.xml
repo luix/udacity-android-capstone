@@ -13,6 +13,7 @@
     <string name="title_section2">Reggae</string>
     <string name="title_section3">Rap</string>
 
+    <string name="activity_image_trans">activity_image_trans</string>
 
     <!-- UberStations Web Services Query Parameter Names-->
     <string name="query">q</string>

@@ -4,22 +4,29 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.SearchManager;
+import android.app.SharedElementCallback;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.transition.TransitionInflater;
 import android.util.Log;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
@@ -50,6 +57,9 @@ public class MainActivity extends AppCompatActivity implements
     private static final String PLAYER_FRAGMENTS_KEY = "player_fragments_list";
     private static final String PLAYER_FRAGMENTS_MAP_KEY = "player_fragments_map";
     private static final String GENRES_FRAGMENTS_MAP_KEY = "genres_fragments_map";
+
+    static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
+    static final String EXTRA_CURRENT_ALBUM_POSITION = "extra_current_item_position";
 
     private Intent playerIntent;
 
@@ -109,6 +119,9 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
+
+
+        setExitSharedElementCallback(mCallback);
 
         if (savedInstanceState != null) {
             Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
@@ -462,8 +475,36 @@ public class MainActivity extends AppCompatActivity implements
         return playerManager.isPlaying();
     }
 
+
+    private Bundle mTmpReenterState;
+
+    private final SharedElementCallback mCallback = new SharedElementCallback() {
+        @Override
+        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+            if (mTmpReenterState == null) {
+                // If mTmpReenterState is null, then the activity is exiting.
+                View navigationBar = findViewById(android.R.id.navigationBarBackground);
+                View statusBar = findViewById(android.R.id.statusBarBackground);
+                if (navigationBar != null) {
+                    names.add(navigationBar.getTransitionName());
+                    sharedElements.put(navigationBar.getTransitionName(), navigationBar);
+                }
+                if (statusBar != null) {
+                    names.add(statusBar.getTransitionName());
+                    sharedElements.put(statusBar.getTransitionName(), statusBar);
+                }
+            }
+        }
+    };
+
     @Override
-    public void onSongSelected(Song song) {
+    public void onActivityReenter(int requestCode, Intent data) {
+        super.onActivityReenter(requestCode, data);
+        postponeEnterTransition();
+    }
+
+    @Override
+    public void onSongSelected(Song song, ImageView imageView) {
         Log.v(LOG_TAG, "onSongSelected - song title: " + song.getSongTitle());
         Log.v(LOG_TAG, "onSongSelected - group key: " + song.getGroupKey());
 
@@ -472,6 +513,49 @@ public class MainActivity extends AppCompatActivity implements
         playerManager.setCurrentSong(song);
         List<Song> songs = playerManager.getSongsByGenre(song.getGroupKey());
         playerManager.setSongs(songs);
+
+        PlayerFragment playerFragment = PlayerFragment.newInstance();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setSharedElementReturnTransition(TransitionInflater.from(
+                    this).inflateTransition(R.transition.change_image_trans));
+            setExitTransition(TransitionInflater.from(
+                    this).inflateTransition(android.R.transition.fade));
+
+            playerFragment.setSharedElementEnterTransition(TransitionInflater.from(
+                    this).inflateTransition(R.transition.change_image_trans));
+            playerFragment.setEnterTransition(TransitionInflater.from(
+                    this).inflateTransition(android.R.transition.fade));
+        }
+
+        Bundle bundle = new Bundle();
+        //bundle.putString("ACTION", textView.getText().toString());
+        bundle.putParcelable("IMAGE", ((BitmapDrawable) imageView.getDrawable()).getBitmap());
+        bundle.putSerializable("SONG", song);
+        playerFragment.setArguments(bundle);
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, playerFragment)
+                .addToBackStack("Payment")
+                .addSharedElement(imageView, getString(R.string.activity_image_trans))
+                .commit();
+
+
+/*        Intent intent = new Intent(this, PlayerActivity.class);
+        Bundle args = new Bundle();
+        args.putSerializable("song", song);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ActivityOptionsCompat options = ActivityOptionsCompat.
+                    makeSceneTransitionAnimation(this, imageView, getString(R.string.activity_image_trans));
+            startActivity(intent, options.toBundle());
+        }
+        else {
+            startActivity(intent);
+        }*/
+
+
+/*
 
         int songIndex = 0;
         playerFragmentsList = new ArrayList<PlayerFragment>();
@@ -496,6 +580,8 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "songIndex: " + songIndex);
         Log.v(LOG_TAG, "mViewPager.getChildCount(): " + mViewPager.getChildCount());
         mViewPager.setCurrentItem(songIndex);
+
+*/
 
 //        if (findViewById(R.id.fragment_container) != null) {
 //            Log.v(LOG_TAG, "playerFragment...");

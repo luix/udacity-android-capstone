@@ -3,15 +3,20 @@ package com.xinay.droid.fm;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.transition.Transition;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -21,7 +26,9 @@ import android.widget.Toast;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.async.RadioStationsClient;
 import com.xinay.droid.fm.bus.BusProvider;
@@ -34,6 +41,7 @@ import com.xinay.droid.fm.model.SongArtResponse;
 import com.xinay.droid.fm.model.TopSongsResponse;
 import com.xinay.droid.fm.model.Track;
 import com.xinay.droid.fm.services.PlayerService;
+import com.xinay.droid.fm.transition.TransitionListenerAdapter;
 import com.xinay.droid.fm.util.Constants;
 import com.xinay.droid.fm.util.StringUtilities;
 
@@ -100,6 +108,174 @@ public class PlayerFragment extends Fragment {
     private String artist;
     private String albumArtUrl;
 
+    private static final String ARG_ALBUM_IMAGE_POSITION = "arg_album_image_position";
+    private static final String ARG_STARTING_ALBUM_IMAGE_POSITION = "arg_starting_album_image_position";
+
+    private final Callback mImageCallback = new Callback() {
+        @Override
+        public void onSuccess() {
+            startPostponedEnterTransition();
+        }
+
+        @Override
+        public void onError() {
+            startPostponedEnterTransition();
+        }
+    };
+
+    private ImageView mAlbumImage;
+    private int mStartingPosition;
+    private int mAlbumPosition;
+    private boolean mIsTransitioning;
+    private final long mBackgroundImageFadeMillis = 1000;
+
+    public static PlayerFragment newInstance(int position, int startingPosition) {
+        Bundle args = new Bundle();
+        args.putInt(ARG_ALBUM_IMAGE_POSITION, position);
+        args.putInt(ARG_STARTING_ALBUM_IMAGE_POSITION, startingPosition);
+        PlayerFragment fragment = new PlayerFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mStartingPosition = getArguments().getInt(ARG_STARTING_ALBUM_IMAGE_POSITION);
+        mAlbumPosition = getArguments().getInt(ARG_ALBUM_IMAGE_POSITION);
+        mIsTransitioning = savedInstanceState == null && mStartingPosition == mAlbumPosition;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.player_layout, container, false);
+
+        mAlbumCover = (ImageView) rootView.findViewById(R.id.album_art);
+        mPlayPauseButton = (ImageButton) rootView.findViewById(R.id.play_pause_button);
+        mSongTitle = (TextView) rootView.findViewById(R.id.song_title);
+        mArtistName = (TextView) rootView.findViewById(R.id.artist_name);
+        mStationId = (TextView) rootView.findViewById(R.id.station_id);
+
+        Log.v(LOG_TAG, "albumArtUrl: " + albumArtUrl);
+        if (albumArtUrl != null) {
+            if (albumArtUrl.indexOf("dar.fm") != -1) {
+                mAlbumCover.setImageResource(R.drawable.droid_fm);
+            } else {
+                Picasso.with(getActivity()).setIndicatorsEnabled(true);
+                Picasso.with(getActivity())
+                        .load(albumArtUrl)
+                        .placeholder(R.drawable.droid_fm)
+                        .error(R.drawable.droid_fm)
+                        .fit()
+                        .into(mAlbumCover);
+            }
+        } else {
+            if (song != null) {
+
+//                String key = getParentFragment().toString();
+                String key = "6125348712";
+                playerManager.getRadioStationsClient().doSongArt(
+                        song.getSongArtist(),
+                        song.getSongTitle(),
+                        Constants.ALBUM_ART_IMAGE_RESOLUTION,
+                        key
+                );
+                try {
+                    Log.v(LOG_TAG, "bus - register: " + this.toString());
+                    // register with the bus to receive events
+                    BusProvider.getInstance().register(this);
+                } catch (IllegalArgumentException e) {
+                    BusProvider.getInstance().unregister(this);
+                }
+            }
+        }
+
+        mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playPause(song);
+                //skip();
+            }
+        });
+
+        Log.v(LOG_TAG, "song: " + song);
+        if (song != null) {
+            mSongTitle.setText(song.getSongTitle());
+            mArtistName.setText(song.getSongArtist());
+            mStationId.setText(song.getCallSign());
+        }
+
+        mAlbumImage = (ImageView) rootView.findViewById(R.id.album_art);
+        final ImageView backgroundImage = (ImageView) rootView.findViewById(R.id.album_art);
+
+        //View textContainer = rootView.findViewById(R.id.details_text_container);
+        TextView albumTitleText = (TextView) rootView.findViewById(R.id.song_title);
+
+        String albumImageUrl = song != null ? song.getAlbumArtUrl() : "http://i.imgur.com/wcMIc6s.jpg";
+        String backgroundImageUrl = song != null ? song.getAlbumArtUrl() : "http://i.imgur.com/HvKBJfQ.jpg";
+        String albumName = song != null ? song.getSongTitle() : "The King of Limbs";
+
+        albumTitleText.setText(albumName);
+        mAlbumImage.setTransitionName(albumName);
+
+        RequestCreator albumImageRequest = Picasso.with(getActivity()).load(albumImageUrl);
+        RequestCreator backgroundImageRequest = Picasso.with(getActivity()).load(backgroundImageUrl).fit().centerCrop();
+
+        if (mIsTransitioning) {
+            albumImageRequest.noFade();
+            backgroundImageRequest.noFade();
+            backgroundImage.setAlpha(0f);
+            getActivity().getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
+                @Override
+                public void onTransitionEnd(Transition transition) {
+                    backgroundImage.animate().setDuration(mBackgroundImageFadeMillis).alpha(1f);
+                }
+            });
+        }
+
+        albumImageRequest.into(mAlbumImage, mImageCallback);
+        backgroundImageRequest.into(backgroundImage);
+
+        return rootView;
+    }
+
+    private void startPostponedEnterTransition() {
+        if (mAlbumPosition == mStartingPosition) {
+            mAlbumImage.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    mAlbumImage.getViewTreeObserver().removeOnPreDrawListener(this);
+                    getActivity().startPostponedEnterTransition();
+                    return true;
+                }
+            });
+        }
+    }
+
+    /**
+     * Returns the shared element that should be transitioned back to the previous Activity,
+     * or null if the view is not visible on the screen.
+     */
+    @Nullable
+    ImageView getAlbumImage() {
+        if (isViewInBounds(getActivity().getWindow().getDecorView(), mAlbumImage)) {
+            return mAlbumImage;
+        }
+        return null;
+    }
+
+    /**
+     * Returns true if {@param view} is contained within {@param container}'s bounds.
+     */
+    private static boolean isViewInBounds(@NonNull View container, @NonNull View view) {
+        Rect containerBounds = new Rect();
+        container.getHitRect(containerBounds);
+        return view.getLocalVisibleRect(containerBounds);
+    }
+
+
+    ///////
+
     public static PlayerFragment newInstance() {
         PlayerFragment fragment = new PlayerFragment();
 //        Bundle args = new Bundle();
@@ -143,6 +319,8 @@ public class PlayerFragment extends Fragment {
 //        outState.putString(ARG_ARTIST_NAME, artistName);
     }
 
+
+/*
     @Override
     public void onCreate(Bundle savedInstanceState) {
 //        Log.v(LOG_TAG, "onCreate(): " + this.toString());
@@ -161,7 +339,7 @@ public class PlayerFragment extends Fragment {
 //            Log.v(LOG_TAG, "onCreate - trackIndex: " + trackIndex);
 //            mListener.onPlayerSetTrack(trackIndex);
         }
-    }
+    }*/
 
     @Override
     public void onResume() {
@@ -175,7 +353,7 @@ public class PlayerFragment extends Fragment {
         super.onPause();
     }
 
-    @Override
+/*    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView(): " + this.toString());
@@ -238,7 +416,7 @@ public class PlayerFragment extends Fragment {
         }
 
         return rootView;
-    }
+    }*/
 
 //    @Override
 //    public Dialog onCreateDialog(Bundle savedInstanceState) {

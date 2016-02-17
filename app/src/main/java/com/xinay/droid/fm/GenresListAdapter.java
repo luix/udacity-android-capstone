@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -38,6 +39,24 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
 //    public GenresListAdapter() {
 //        Log.v(LOG_TAG, "GenresListAdapter - empty constructor");
 //    }
+
+/*
+    */
+/**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     *//*
+
+    public interface OnItemClickListener {
+        */
+/**
+         * GenresFragmentCallback for when an item has been selected.
+         *//*
+
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id);
+    }
+*/
 
     public GenresListAdapter(MainActivity activity) {
         Log.v(LOG_TAG, "GenresListAdapter - non-empty constructor");
@@ -136,7 +155,7 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
         public void onClick(View v) {
             Log.v(LOG_TAG, "onClick - song title: " + song.getSongTitle());
             //parentActivity.instantiateTopTracksFragment(itemArtist);
-            parentActivity.onSongSelected(song);
+            parentActivity.onSongSelected(song, itemAlbumArt);
         }
 
         public void setSong(Song song) {

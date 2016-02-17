@@ -16,6 +16,7 @@
         android:layout_height="320dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:transitionName="@string/activity_image_trans"
         android:src="@drawable/droid_fm" />
 
     <TextView
