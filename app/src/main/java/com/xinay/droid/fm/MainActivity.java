@@ -514,49 +514,6 @@ public class MainActivity extends AppCompatActivity implements
         List<Song> songs = playerManager.getSongsByGenre(song.getGroupKey());
         playerManager.setSongs(songs);
 
-        PlayerFragment playerFragment = PlayerFragment.newInstance();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setSharedElementReturnTransition(TransitionInflater.from(
-                    this).inflateTransition(R.transition.change_image_trans));
-            setExitTransition(TransitionInflater.from(
-                    this).inflateTransition(android.R.transition.fade));
-
-            playerFragment.setSharedElementEnterTransition(TransitionInflater.from(
-                    this).inflateTransition(R.transition.change_image_trans));
-            playerFragment.setEnterTransition(TransitionInflater.from(
-                    this).inflateTransition(android.R.transition.fade));
-        }
-
-        Bundle bundle = new Bundle();
-        //bundle.putString("ACTION", textView.getText().toString());
-        bundle.putParcelable("IMAGE", ((BitmapDrawable) imageView.getDrawable()).getBitmap());
-        bundle.putSerializable("SONG", song);
-        playerFragment.setArguments(bundle);
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, playerFragment)
-                .addToBackStack("Payment")
-                .addSharedElement(imageView, getString(R.string.activity_image_trans))
-                .commit();
-
-
-/*        Intent intent = new Intent(this, PlayerActivity.class);
-        Bundle args = new Bundle();
-        args.putSerializable("song", song);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ActivityOptionsCompat options = ActivityOptionsCompat.
-                    makeSceneTransitionAnimation(this, imageView, getString(R.string.activity_image_trans));
-            startActivity(intent, options.toBundle());
-        }
-        else {
-            startActivity(intent);
-        }*/
-
-
-/*
-
         int songIndex = 0;
         playerFragmentsList = new ArrayList<PlayerFragment>();
         for (int i = 0; i < songs.size(); i++) {
@@ -581,7 +538,6 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "mViewPager.getChildCount(): " + mViewPager.getChildCount());
         mViewPager.setCurrentItem(songIndex);
 
-*/
 
 //        if (findViewById(R.id.fragment_container) != null) {
 //            Log.v(LOG_TAG, "playerFragment...");

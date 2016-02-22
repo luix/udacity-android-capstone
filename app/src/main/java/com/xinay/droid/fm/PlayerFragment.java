@@ -3,6 +3,7 @@ package com.xinay.droid.fm;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.SharedElementCallback;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -47,6 +48,9 @@ import com.xinay.droid.fm.util.StringUtilities;
 
 import org.parceler.Parcel;
 import org.parceler.Parcels;
+
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -108,6 +112,9 @@ public class PlayerFragment extends Fragment {
     private String artist;
     private String albumArtUrl;
 
+    static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
+    static final String EXTRA_CURRENT_ALBUM_POSITION = "extra_current_item_position";
+
     private static final String ARG_ALBUM_IMAGE_POSITION = "arg_album_image_position";
     private static final String ARG_STARTING_ALBUM_IMAGE_POSITION = "arg_starting_album_image_position";
 
@@ -123,11 +130,44 @@ public class PlayerFragment extends Fragment {
         }
     };
 
+
     private ImageView mAlbumImage;
-    private int mStartingPosition;
     private int mAlbumPosition;
+    private int mCurrentPosition;
+    private int mStartingPosition;
+    private boolean mIsReturning;
     private boolean mIsTransitioning;
-    private final long mBackgroundImageFadeMillis = 1000;
+    private long mBackgroundImageFadeMillis;
+
+    private Bundle mTmpReenterState;
+
+    private final SharedElementCallback mCallback = new SharedElementCallback() {
+        @Override
+        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+
+            Log.v(LOG_TAG, "SharedElementCallback - onMapSharedElements() ");
+
+            if (mIsReturning) {
+                ImageView sharedElement = mAlbumCover;
+                if (sharedElement == null) {
+                    // If shared element is null, then it has been scrolled off screen and
+                    // no longer visible. In this case we cancel the shared element transition by
+                    // removing the shared element from the shared elements map.
+                    names.clear();
+                    sharedElements.clear();
+                } else if (mStartingPosition != mCurrentPosition) {
+                    // If the user has swiped to a different ViewPager page, then we need to
+                    // remove the old shared element and replace it with the new shared element
+                    // that should be transitioned instead.
+                    names.clear();
+                    names.add(sharedElement.getTransitionName());
+                    sharedElements.clear();
+                    sharedElements.put(sharedElement.getTransitionName(), sharedElement);
+                }
+            }
+        }
+    };
+
 
     public static PlayerFragment newInstance(int position, int startingPosition) {
         Bundle args = new Bundle();
@@ -141,9 +181,12 @@ public class PlayerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mStartingPosition = getArguments().getInt(ARG_STARTING_ALBUM_IMAGE_POSITION);
-        mAlbumPosition = getArguments().getInt(ARG_ALBUM_IMAGE_POSITION);
-        mIsTransitioning = savedInstanceState == null && mStartingPosition == mAlbumPosition;
+
+        setEnterSharedElementCallback(mCallback);
+
+//        mStartingPosition = getArguments().getInt(ARG_STARTING_ALBUM_IMAGE_POSITION);
+//        mAlbumPosition = getArguments().getInt(ARG_ALBUM_IMAGE_POSITION);
+//        mIsTransitioning = savedInstanceState == null && mStartingPosition == mAlbumPosition;
     }
 
     @Override

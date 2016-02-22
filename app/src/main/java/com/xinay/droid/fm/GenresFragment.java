@@ -76,6 +76,9 @@ public class GenresFragment extends Fragment {
     private final SharedElementCallback mCallback = new SharedElementCallback() {
         @Override
         public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+
+            Log.v(LOG_TAG, "SharedElementCallback - onMapSharedElements() ");
+
             if (mTmpReenterState != null) {
                 int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
                 int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
@@ -156,6 +159,9 @@ public class GenresFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreate : " + this.toString());
         super.onCreate(savedInstanceState);
+
+        setExitSharedElementCallback(mCallback);
+
         if (songs == null) {
             Log.v(LOG_TAG, "getSongsByGenre");
             initSongs();
