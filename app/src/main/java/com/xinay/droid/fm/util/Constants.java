@@ -16,6 +16,10 @@ public class Constants {
     public static final String ARTIST_ID_KEY = "artist_id_key";
     public static final String ARTIST_NAME_KEY = "artist_name_key";
 
+    public static final String EXTRA_GENRE_KEY = "extra_genre_key";
+    public static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
+    public static final String EXTRA_CURRENT_ALBUM_POSITION = "extra_current_item_position";
+
     public static final String TRACK_ID_KEY = "track_id_key";
     public static final String TRACK_NAME_KEY = "track_name_key";
 

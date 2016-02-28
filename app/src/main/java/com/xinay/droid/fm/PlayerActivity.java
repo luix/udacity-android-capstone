@@ -17,14 +17,17 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.xinay.droid.fm.R;
+import com.xinay.droid.fm.model.Song;
 
 import java.util.List;
 import java.util.Map;
 
-import static com.xinay.droid.fm.MainActivity.EXTRA_CURRENT_ALBUM_POSITION;
-import static com.xinay.droid.fm.MainActivity.EXTRA_STARTING_ALBUM_POSITION;
+import static com.xinay.droid.fm.util.Constants.EXTRA_GENRE_KEY;
+import static com.xinay.droid.fm.util.Constants.EXTRA_CURRENT_ALBUM_POSITION;
+import static com.xinay.droid.fm.util.Constants.EXTRA_STARTING_ALBUM_POSITION;
 
-public class PlayerActivity extends AppCompatActivity {
+public class PlayerActivity extends AppCompatActivity implements
+        PlayerFragment.OnFragmentInteractionListener {
 
     private final String LOG_TAG = PlayerActivity.class.getSimpleName();
 
@@ -33,6 +36,7 @@ public class PlayerActivity extends AppCompatActivity {
     private final SharedElementCallback mCallback = new SharedElementCallback() {
         @Override
         public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+            Log.v(LOG_TAG, "SharedElementCallback - onMapSharedElements(..)");
             if (mIsReturning) {
                 ImageView sharedElement = mCurrentDetailsFragment.getAlbumImage();
                 if (sharedElement == null) {
@@ -46,6 +50,7 @@ public class PlayerActivity extends AppCompatActivity {
                     // remove the old shared element and replace it with the new shared element
                     // that should be transitioned instead.
                     names.clear();
+                    Log.v(LOG_TAG, "sharedElement.getTransitionName: " + sharedElement.getTransitionName());
                     names.add(sharedElement.getTransitionName());
                     sharedElements.clear();
                     sharedElements.put(sharedElement.getTransitionName(), sharedElement);
@@ -55,24 +60,32 @@ public class PlayerActivity extends AppCompatActivity {
     };
 
     private PlayerFragment mCurrentDetailsFragment;
+    private String mGenre;
     private int mCurrentPosition;
     private int mStartingPosition;
     private boolean mIsReturning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
+        Log.v(LOG_TAG, "postponeEnterTransition()");
         postponeEnterTransition();
+        Log.v(LOG_TAG, "setEnterSharedElementCallback()");
         setEnterSharedElementCallback(mCallback);
 
+        mGenre = getIntent().getStringExtra(EXTRA_GENRE_KEY);
         mStartingPosition = getIntent().getIntExtra(EXTRA_STARTING_ALBUM_POSITION, 0);
         if (savedInstanceState == null) {
             mCurrentPosition = mStartingPosition;
         } else {
             mCurrentPosition = savedInstanceState.getInt(STATE_CURRENT_PAGE_POSITION);
         }
+        Log.v(LOG_TAG, "mStartingPosition: " + mStartingPosition);
+        Log.v(LOG_TAG, "mCurrentPosition: " + mCurrentPosition);
 
+        Log.v(LOG_TAG, "ViewPager...");
         ViewPager pager = (ViewPager) findViewById(R.id.pager);
         pager.setAdapter(new DetailsFragmentPagerAdapter(getFragmentManager()));
         pager.setCurrentItem(mCurrentPosition);
@@ -80,6 +93,7 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 mCurrentPosition = position;
+                Log.v(LOG_TAG, "addOnPageChangeListener , mCurrentPosition: " + mCurrentPosition);
             }
         });
     }
@@ -92,6 +106,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     public void finishAfterTransition() {
+        Log.v(LOG_TAG, "finishAfterTransition()");
         mIsReturning = true;
         Intent data = new Intent();
         data.putExtra(EXTRA_STARTING_ALBUM_POSITION, mStartingPosition);
@@ -107,7 +122,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return PlayerFragment.newInstance(position, mStartingPosition);
+            return PlayerFragment.newInstance(mGenre, position, mStartingPosition);
         }
 
         @Override
@@ -118,8 +133,26 @@ public class PlayerActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return PlayerManager.getInstance().getSongsByGenre("Music").size();
+            return PlayerManager.getInstance().getSongsByGenre(mGenre).size();
         }
+    }
+
+
+    @Override
+    public void onPlayerPlayPause() {
+        Log.v(LOG_TAG, "onPlayerPlayPause");
+        PlayerManager.getInstance().onPlayerPlayPause();
+    }
+
+    @Override
+    public void onPreparePlayer(Song song) {
+        Log.v(LOG_TAG, "onPreparePlayer");
+        PlayerManager.getInstance().onPrepareSong(song);
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return PlayerManager.getInstance().isPlaying();
     }
 
     /////////////

@@ -1,14 +1,10 @@
 package com.xinay.droid.fm;
 
 import android.app.Activity;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.SharedElementCallback;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.transition.Transition;
@@ -18,39 +14,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
-import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.async.RadioStationsClient;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.SongArtEvent;
 import com.xinay.droid.fm.event.TopSongsEvent;
-import com.xinay.droid.fm.model.Album;
-import com.xinay.droid.fm.model.Image;
 import com.xinay.droid.fm.model.Song;
 import com.xinay.droid.fm.model.SongArtResponse;
 import com.xinay.droid.fm.model.TopSongsResponse;
-import com.xinay.droid.fm.model.Track;
-import com.xinay.droid.fm.services.PlayerService;
 import com.xinay.droid.fm.transition.TransitionListenerAdapter;
 import com.xinay.droid.fm.util.Constants;
-import com.xinay.droid.fm.util.StringUtilities;
-
-import org.parceler.Parcel;
-import org.parceler.Parcels;
-
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -83,9 +65,9 @@ public class PlayerFragment extends Fragment {
     private TextView mSongTitle;
     private TextView mArtistName;
     private TextView mStationId;
-//    private TextView mAlbumName;
+    //    private TextView mAlbumName;
     private ImageView mAlbumCover;
-//    private ImageButton mPrevButton;
+    //    private ImageButton mPrevButton;
     private ImageButton mPlayPauseButton;
 //    private ImageButton mNextButton;
 //    private SeekBar mSeekbar = null;
@@ -107,14 +89,13 @@ public class PlayerFragment extends Fragment {
     // reference to the RadioStationsClient to make API calls to Radio Stations Web Services
     private RadioStationsClient radioStationsClient;
     // reference to the Current Song playing, paused or ready to start
-    private Song song;
+    private String mGenre;
+    private Song mSong;
 
-    private String artist;
+//    private String artist;
     private String albumArtUrl;
 
-    static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
-    static final String EXTRA_CURRENT_ALBUM_POSITION = "extra_current_item_position";
-
+    private static final String ARG_GENRE_KEY = "arg_genre_key";
     private static final String ARG_ALBUM_IMAGE_POSITION = "arg_album_image_position";
     private static final String ARG_STARTING_ALBUM_IMAGE_POSITION = "arg_starting_album_image_position";
 
@@ -132,45 +113,14 @@ public class PlayerFragment extends Fragment {
 
 
     private ImageView mAlbumImage;
-    private int mAlbumPosition;
-    private int mCurrentPosition;
     private int mStartingPosition;
-    private boolean mIsReturning;
+    private int mAlbumPosition;
     private boolean mIsTransitioning;
     private long mBackgroundImageFadeMillis;
 
-    private Bundle mTmpReenterState;
-
-    private final SharedElementCallback mCallback = new SharedElementCallback() {
-        @Override
-        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
-
-            Log.v(LOG_TAG, "SharedElementCallback - onMapSharedElements() ");
-
-            if (mIsReturning) {
-                ImageView sharedElement = mAlbumCover;
-                if (sharedElement == null) {
-                    // If shared element is null, then it has been scrolled off screen and
-                    // no longer visible. In this case we cancel the shared element transition by
-                    // removing the shared element from the shared elements map.
-                    names.clear();
-                    sharedElements.clear();
-                } else if (mStartingPosition != mCurrentPosition) {
-                    // If the user has swiped to a different ViewPager page, then we need to
-                    // remove the old shared element and replace it with the new shared element
-                    // that should be transitioned instead.
-                    names.clear();
-                    names.add(sharedElement.getTransitionName());
-                    sharedElements.clear();
-                    sharedElements.put(sharedElement.getTransitionName(), sharedElement);
-                }
-            }
-        }
-    };
-
-
-    public static PlayerFragment newInstance(int position, int startingPosition) {
+    public static PlayerFragment newInstance(String genre, int position, int startingPosition) {
         Bundle args = new Bundle();
+        args.putString(ARG_GENRE_KEY, genre);
         args.putInt(ARG_ALBUM_IMAGE_POSITION, position);
         args.putInt(ARG_STARTING_ALBUM_IMAGE_POSITION, startingPosition);
         PlayerFragment fragment = new PlayerFragment();
@@ -180,17 +130,30 @@ public class PlayerFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onCreate()");
         super.onCreate(savedInstanceState);
 
-        setEnterSharedElementCallback(mCallback);
+        mGenre = getArguments().getString(ARG_GENRE_KEY);
+        mStartingPosition = getArguments().getInt(ARG_STARTING_ALBUM_IMAGE_POSITION);
+        mAlbumPosition = getArguments().getInt(ARG_ALBUM_IMAGE_POSITION);
+        mIsTransitioning = savedInstanceState == null && mStartingPosition == mAlbumPosition;
+        mBackgroundImageFadeMillis = 1000;
 
-//        mStartingPosition = getArguments().getInt(ARG_STARTING_ALBUM_IMAGE_POSITION);
-//        mAlbumPosition = getArguments().getInt(ARG_ALBUM_IMAGE_POSITION);
-//        mIsTransitioning = savedInstanceState == null && mStartingPosition == mAlbumPosition;
+        Log.v(LOG_TAG, "mStartingPosition: " + mStartingPosition);
+        Log.v(LOG_TAG, "mAlbumPosition: " + mAlbumPosition);
+        Log.v(LOG_TAG, "mIsTransitioning: " + mIsTransitioning);
+
+        mSong = PlayerManager.getInstance().getSongsByGenre(mGenre).get(mAlbumPosition);
+
+        if (mSong != null) {
+            Log.v(LOG_TAG, "mSong title: " + mSong.getSongTitle());
+            this.setSong(mSong);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onCreateView()");
         View rootView = inflater.inflate(R.layout.player_layout, container, false);
 
         mAlbumCover = (ImageView) rootView.findViewById(R.id.album_art);
@@ -213,15 +176,15 @@ public class PlayerFragment extends Fragment {
                         .into(mAlbumCover);
             }
         } else {
-            if (song != null) {
+            if (mSong != null) {
 
 //                String key = getParentFragment().toString();
                 String key = "6125348712";
                 playerManager.getRadioStationsClient().doSongArt(
-                        song.getSongArtist(),
-                        song.getSongTitle(),
+                        mSong.getSongArtist(),
+                        mSong.getSongTitle(),
                         Constants.ALBUM_ART_IMAGE_RESOLUTION,
-                        key
+                        mAlbumPosition
                 );
                 try {
                     Log.v(LOG_TAG, "bus - register: " + this.toString());
@@ -236,48 +199,56 @@ public class PlayerFragment extends Fragment {
         mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playPause(song);
+                playPause(mSong);
                 //skip();
             }
         });
 
-        Log.v(LOG_TAG, "song: " + song);
-        if (song != null) {
-            mSongTitle.setText(song.getSongTitle());
-            mArtistName.setText(song.getSongArtist());
-            mStationId.setText(song.getCallSign());
+        Log.v(LOG_TAG, "mSong: " + mSong);
+        if (mSong != null) {
+            mSongTitle.setText(mSong.getSongTitle());
+            mArtistName.setText(mSong.getSongArtist());
+            mStationId.setText(mSong.getCallSign());
         }
 
         mAlbumImage = (ImageView) rootView.findViewById(R.id.album_art);
-        final ImageView backgroundImage = (ImageView) rootView.findViewById(R.id.album_art);
+//        final ImageView backgroundImage = (ImageView) rootView.findViewById(R.id.album_art);
 
         //View textContainer = rootView.findViewById(R.id.details_text_container);
         TextView albumTitleText = (TextView) rootView.findViewById(R.id.song_title);
 
-        String albumImageUrl = song != null ? song.getAlbumArtUrl() : "http://i.imgur.com/wcMIc6s.jpg";
-        String backgroundImageUrl = song != null ? song.getAlbumArtUrl() : "http://i.imgur.com/HvKBJfQ.jpg";
-        String albumName = song != null ? song.getSongTitle() : "The King of Limbs";
+        String albumImageUrl = mSong != null ? mSong.getAlbumArtUrl() : "http://i.imgur.com/wcMIc6s.jpg";
+//        String backgroundImageUrl = mSong != null ? mSong.getAlbumArtUrl() : "http://i.imgur.com/HvKBJfQ.jpg";
+        String albumName = mSong != null ? mSong.getSongTitle() : "The King of Limbs";
+
+//        String albumImageUrl = "http://i.imgur.com/wcMIc6s.jpg";
+//        String backgroundImageUrl = "http://i.imgur.com/HvKBJfQ.jpg";
+//        String albumName = mSong != null ? mSong.getSongTitle() : "The King of Limbs";
 
         albumTitleText.setText(albumName);
-        mAlbumImage.setTransitionName(albumName);
+
+        if (mSong != null) {
+            Log.v(LOG_TAG, "mAlbumImage.setTransitionName: " + mSong.getUberUrl().getUrl());
+            mAlbumImage.setTransitionName(mSong.getUberUrl().getUrl());
+        }
 
         RequestCreator albumImageRequest = Picasso.with(getActivity()).load(albumImageUrl);
-        RequestCreator backgroundImageRequest = Picasso.with(getActivity()).load(backgroundImageUrl).fit().centerCrop();
+//        RequestCreator backgroundImageRequest = Picasso.with(getActivity()).load(backgroundImageUrl).fit().centerCrop();
 
         if (mIsTransitioning) {
             albumImageRequest.noFade();
-            backgroundImageRequest.noFade();
-            backgroundImage.setAlpha(0f);
+//            backgroundImageRequest.noFade();
+//            backgroundImage.setAlpha(0f);
             getActivity().getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
                 @Override
                 public void onTransitionEnd(Transition transition) {
-                    backgroundImage.animate().setDuration(mBackgroundImageFadeMillis).alpha(1f);
+//                    backgroundImage.animate().setDuration(mBackgroundImageFadeMillis).alpha(1f);
                 }
             });
         }
 
         albumImageRequest.into(mAlbumImage, mImageCallback);
-        backgroundImageRequest.into(backgroundImage);
+//        backgroundImageRequest.into(backgroundImage);
 
         return rootView;
     }
@@ -319,15 +290,15 @@ public class PlayerFragment extends Fragment {
 
     ///////
 
-    public static PlayerFragment newInstance() {
-        PlayerFragment fragment = new PlayerFragment();
-//        Bundle args = new Bundle();
-//        Parcelable wrapped = Parcels.wrap(track);
-//        args.putParcelable(ARG_TRACK, wrapped);
-//        args.putString(ARG_ARTIST_NAME, artistName);w
-//        fragment.setArguments(args);
-        return fragment;
-    }
+//    public static PlayerFragment newInstance() {
+//        PlayerFragment fragment = new PlayerFragment();
+////        Bundle args = new Bundle();
+////        Parcelable wrapped = Parcels.wrap(track);
+////        args.putParcelable(ARG_TRACK, wrapped);
+////        args.putString(ARG_ARTIST_NAME, artistName);w
+////        fragment.setArguments(args);
+//        return fragment;
+//    }
 
     public PlayerFragment() {
         // Required empty public constructor
@@ -335,13 +306,12 @@ public class PlayerFragment extends Fragment {
     }
 
     public void setSong(Song asong) {
-        this.song = asong;
-        artist = song.getSongArtist();
-        Log.v(LOG_TAG, "set song - artist: " + artist);
-        Log.v(LOG_TAG, "set song - title: " + song.getSongTitle());
-        Log.v(LOG_TAG, "set song - call sign: " + song.getCallSign());
-        Log.v(LOG_TAG, "set song - station id: " + song.getStationId());
-        Log.v(LOG_TAG, "set song - albumArtUrl: " + albumArtUrl);
+        this.mSong = asong;
+        Log.v(LOG_TAG, "set mSong - artist: " + mSong.getSongArtist());
+        Log.v(LOG_TAG, "set mSong - title: " + mSong.getSongTitle());
+        Log.v(LOG_TAG, "set mSong - call sign: " + mSong.getCallSign());
+        Log.v(LOG_TAG, "set mSong - station id: " + mSong.getStationId());
+        Log.v(LOG_TAG, "set mSong - albumArtUrl: " + albumArtUrl);
     }
 
     public interface OnFragmentInteractionListener {
@@ -423,13 +393,13 @@ public class PlayerFragment extends Fragment {
                         .into(mAlbumCover);
             }
         } else {
-            if (song != null) {
+            if (mSong != null) {
 
 //                String key = getParentFragment().toString();
                 String key = "6125348712";
                 playerManager.getRadioStationsClient().doSongArt(
-                        song.getSongArtist(),
-                        song.getSongTitle(),
+                        mSong.getSongArtist(),
+                        mSong.getSongTitle(),
                         Constants.ALBUM_ART_IMAGE_RESOLUTION,
                         key
                 );
@@ -446,16 +416,16 @@ public class PlayerFragment extends Fragment {
         mPlayPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playPause(song);
+                playPause(mSong);
                 //skip();
             }
         });
 
-        Log.v(LOG_TAG, "song: " + song);
-        if (song != null) {
-            mSongTitle.setText(song.getSongTitle());
-            mArtistName.setText(song.getSongArtist());
-            mStationId.setText(song.getCallSign());
+        Log.v(LOG_TAG, "mSong: " + mSong);
+        if (mSong != null) {
+            mSongTitle.setText(mSong.getSongTitle());
+            mArtistName.setText(mSong.getSongArtist());
+            mStationId.setText(mSong.getCallSign());
         }
 
         return rootView;
@@ -483,14 +453,14 @@ public class PlayerFragment extends Fragment {
 
 //    private void skip() {
 //        if (mListener != null) {
-//            song = mListener.onPlayerNext();
+//            mSong = mListener.onPlayerNext();
 //            //updateTrackInfo();
 //        }
 //    }
 
 //    private void prev() {
 //        if (mListener != null) {
-//            song = mListener.onPlayerPrev();
+//            mSong = mListener.onPlayerPrev();
 //            //updateTrackInfo();
 //        }
 //    }
@@ -502,12 +472,12 @@ public class PlayerFragment extends Fragment {
 
     private void updateAlbumArt() {
 
-        if (song == null) {
-            Log.v(LOG_TAG, "updateAlbumArt , song is null");
-            song = playerManager.getCurrentSong();
+        if (mSong == null) {
+            Log.v(LOG_TAG, "updateAlbumArt , mSong is null");
+            mSong = playerManager.getCurrentSong();
         }
 
-        Log.v(LOG_TAG, "updateAlbumArt , song - title: " + song.getSongTitle());
+        Log.v(LOG_TAG, "updateAlbumArt , mSong - title: " + mSong.getSongTitle());
 
 
 //        if (mListener != null) {
@@ -525,13 +495,15 @@ public class PlayerFragment extends Fragment {
     public void onSongArtEvent(SongArtEvent event) {
         SongArtResponse songArtResponse = event.response;
         SongArtResponse.SongArt songArt = songArtResponse.getSongArt();
-        Log.v(LOG_TAG, "onSongArtEvent - song url : " + songArt.getArtUrl());
+        Log.v(LOG_TAG, "onSongArtEvent - mSong url : " + songArt.getArtUrl());
+
+        int position = songArtResponse.getPosition();
         // check for a valid Album Art URL
         if (albumArtUrl == null) {
-            if (artist.indexOf(songArt.getArtist()) != -1) {
+            if (mSong.getSongArtist().indexOf(songArt.getArtist()) != -1) {
                 albumArtUrl = songArt.getArtUrl();
                 Log.v(LOG_TAG, "bus - unregister: " + this.toString());
-                // register with the bus to receive events
+                // unregister with the bus to receive events
                 BusProvider.getInstance().unregister(this);
                 if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
                     Picasso.with(getActivity())

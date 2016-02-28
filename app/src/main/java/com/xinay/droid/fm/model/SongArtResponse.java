@@ -15,6 +15,8 @@ public class SongArtResponse {
 
     String key;
 
+    int position;
+
     public SongArt getSongArt() {
         if (result != null) {
             return result.get(0);
@@ -38,6 +40,8 @@ public class SongArtResponse {
         @SerializedName("size")
         int size;
 
+
+
         public String getArtUrl() {
             return artUrl;
         }
@@ -58,4 +62,13 @@ public class SongArtResponse {
     public void setKey(String key) {
         this.key = key;
     }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
 }

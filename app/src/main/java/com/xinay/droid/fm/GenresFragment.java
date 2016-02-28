@@ -1,6 +1,7 @@
 package com.xinay.droid.fm;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.SharedElementCallback;
@@ -24,6 +25,7 @@ import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
@@ -33,6 +35,7 @@ import com.xinay.droid.fm.event.SongArtEvent;
 import com.xinay.droid.fm.model.Song;
 import com.xinay.droid.fm.model.SongArtResponse;
 import com.xinay.droid.fm.model.Track;
+import com.xinay.droid.fm.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,13 +55,11 @@ public class GenresFragment extends Fragment {
 
     private final String LOG_TAG = GenresFragment.class.getSimpleName();
 
-    static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
-    static final String EXTRA_CURRENT_ALBUM_POSITION = "extra_current_item_position";
-
-    private List<Song> keys;
-    private Map<String, Song> songs;
+//    private List<Song> keys;
+//    private Map<String, Song> songs;
 
     private GenresListAdapter genresListAdapter;
+    //    private CardAdapter genresListAdapter;
     private RecyclerView mGenresRecyclerView;
 
     private String key;
@@ -80,8 +81,8 @@ public class GenresFragment extends Fragment {
             Log.v(LOG_TAG, "SharedElementCallback - onMapSharedElements() ");
 
             if (mTmpReenterState != null) {
-                int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
-                int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
+                int startingPosition = mTmpReenterState.getInt(Constants.EXTRA_STARTING_ALBUM_POSITION);
+                int currentPosition = mTmpReenterState.getInt(Constants.EXTRA_CURRENT_ALBUM_POSITION);
                 if (startingPosition != currentPosition) {
                     // If startingPosition != currentPosition the user must have swiped to a
                     // different page in the DetailsActivity. We must update the shared element
@@ -116,13 +117,23 @@ public class GenresFragment extends Fragment {
 
     //    private OnFragmentInteractionListener mListener;
 
+    public static GenresFragment newInstance(String key) {
+        Bundle args = new Bundle();
+//        args.putInt(ARG_ALBUM_IMAGE_POSITION, position);
+//        args.putInt(ARG_STARTING_ALBUM_IMAGE_POSITION, startingPosition);
+        GenresFragment fragment = new GenresFragment();
+        fragment.setKey(key);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     public GenresFragment() {
         // Required empty public constructor
         //genresListAdapter = new GenresListAdapter();
         Log.v(LOG_TAG, "GenresFragment - new GenresListAdapter() ");
 //        genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
 
-        keys = new ArrayList<>();
+//        keys = new ArrayList<>();
     }
 
     /**
@@ -155,18 +166,29 @@ public class GenresFragment extends Fragment {
 //        return fragment;
 //    }
 
+
+    public RecyclerView getmGenresRecyclerView() {
+        return mGenresRecyclerView;
+    }
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreate : " + this.toString());
         super.onCreate(savedInstanceState);
 
-        setExitSharedElementCallback(mCallback);
+//        Log.v(LOG_TAG, "setExitSharedElementCallback(mCallback)");
+//        setExitSharedElementCallback(mCallback);
 
-        if (songs == null) {
-            Log.v(LOG_TAG, "getSongsByGenre");
-            initSongs();
-            //PlayerManager.getInstance().getRadioStationsClient().doTopSongs(key);
-        }
+//        if (PlayerManager.getInstance().getSongsByGenre(key) == null) {
+//            PlayerManager.getInstance().getSongsByGenre(key);
+//        }
+
+//        if (songs == null) {
+//            Log.v(LOG_TAG, "getSongsByGenre");
+//            initSongs();
+//            //PlayerManager.getInstance().getRadioStationsClient().doTopSongs(key);
+//        }
 //        if (getArguments() != null) {
 //            mParam1 = getArguments().getString(ARG_PARAM1);
 //            mParam2 = getArguments().getString(ARG_PARAM2);
@@ -182,6 +204,7 @@ public class GenresFragment extends Fragment {
         super.onDestroy();
     }
 
+/*
     private void initSongs() {
         Log.v(LOG_TAG, "initSongs : " + this.toString());
         List<Song> songs = PlayerManager.getInstance().getSongsByGenre(key);
@@ -197,6 +220,7 @@ public class GenresFragment extends Fragment {
             this.setSongs(songMap);
         }
     }
+*/
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -215,32 +239,52 @@ public class GenresFragment extends Fragment {
 
         if (genresListAdapter == null) {
             Log.v(LOG_TAG, "new GenresListAdapter...");
+//            genresListAdapter = new CardAdapter();
             genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
 //            genresListAdapter = new GenresListAdapter();
         }
-        initSongs();
-        if (songs != null) {
-            genresListAdapter.setSongs(songs);
+//        initSongs();
+//        if (PlayerManager.getInstance().getSongsByGenre(key) != null) {
+//            genresListAdapter.setSongs(songs);
+        genresListAdapter.setGenre(key);
             genresListAdapter.notifyDataSetChanged();
-        }
+//        }
         Log.v(LOG_TAG, "mGenresRecyclerView.setAdapter...");
         mGenresRecyclerView.setAdapter(genresListAdapter);
 
+//        genresListAdapter.setSongs(songs);
+//        mGenresRecyclerView.setAdapter(genresListAdapter);
+
+        //        mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+//            @Override
+//            public boolean onPreDraw() {
+//                mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+//                // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
+//                mRecyclerView.requestLayout();
+//                startPostponedEnterTransition();
+//                return true;
+//            }
+//        });
+
         if (savedInstanceState!=null) {
-            int startingPosition = savedInstanceState.getInt(EXTRA_STARTING_ALBUM_POSITION);
-            int currentPosition = savedInstanceState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
+            int startingPosition = savedInstanceState.getInt(Constants.EXTRA_STARTING_ALBUM_POSITION);
+            int currentPosition = savedInstanceState.getInt(Constants.EXTRA_CURRENT_ALBUM_POSITION);
             if (startingPosition != currentPosition) {
                 mGenresRecyclerView.scrollToPosition(currentPosition);
             }
-            mGenresRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    mGenresRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-                    // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
-                    mGenresRecyclerView.requestLayout();
-                    return true;
-                }
-            });
+//            Log.v(LOG_TAG, "mGenresRecyclerView.getViewTreeObserver().addOnPreDrawListener()");
+//            mGenresRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+//                @Override
+//                public boolean onPreDraw() {
+//                    Log.v(LOG_TAG, "onPreDraw()");
+//                    mGenresRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+//                    // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
+//                    mGenresRecyclerView.requestLayout();
+//                    Log.v(LOG_TAG, "startPostponedEnterTransition()");
+//                    getActivity().startPostponedEnterTransition();
+//                    return true;
+//                }
+//            });
         }
 
 //        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -291,6 +335,7 @@ public class GenresFragment extends Fragment {
         String textTransitionName = "";
 
         ImageView imageView = (ImageView) view.findViewById(R.id.album_art);
+
         //TextView textView = (TextView) view.findViewById(R.id.textView);
 
         //ImageView staticImage = (ImageView) getView().findViewById(R.id.imageView);
@@ -361,37 +406,148 @@ public class GenresFragment extends Fragment {
 //        void onFragmentInteraction(Uri uri);
 //    }
 
+/*
+    private class CardAdapter extends RecyclerView.Adapter<CardHolder> {
+        private final LayoutInflater mInflater;
+        private Map<String, Song> songs;
+        private List<String> keys;
 
-    private List<ItemObject> getAllItemObject(){
-        List<ItemObject> items = new ArrayList<>();
-        items.add(new ItemObject(R.drawable.droid_fm,"Dip It Low", "Christina Milian"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Someone like you", "Adele Adkins"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Ride", "Ciara"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Paparazzi", "Lady Gaga"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Forever", "Chris Brown"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Stay", "Rihanna"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Marry me", "Jason Derulo"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Waka Waka", "Shakira"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Dark Horse", "Katy Perry"));
-        items.add(new ItemObject(R.drawable.droid_fm,"Dip It Low", "Christina Milian"));
-        return items;
+        public CardAdapter() {
+            mInflater = LayoutInflater.from(getActivity());
+        }
+
+        public void setSongs(Map<String, Song> songs) {
+            Log.v(LOG_TAG, "setTracks www - songs.size()=" + songs.size());
+            this.songs = songs;
+            keys = new ArrayList<>();
+            keys.addAll(songs.keySet());
+        }
+
+        @Override
+        public CardHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+            return new CardHolder(mInflater.inflate(R.layout.card_song, viewGroup, false));
+        }
+
+        @Override
+        public void onBindViewHolder(CardHolder holder, int position) {
+            Log.v(LOG_TAG, "onBindViewHolder");
+            if (songs == null || holder == null) {
+                return;
+            }
+
+            //String key = keys.get(position);
+            Log.v(LOG_TAG, "song key " + key);
+
+            Song song = songs.get(key);
+            if (song != null) {
+                Log.v(LOG_TAG, "song title: '" + song.getSongTitle() + "'");
+                holder.setSong(song);
+                if (song.getAlbumArtUrl() != null) {
+                    holder.bind(position);
+                    // substitute default image from dar.fm with droid.fm logo
+                    if (song.getAlbumArtUrl().indexOf("dar.fm") != -1) {
+                        holder.mAlbumImage.setImageResource(R.drawable.droid_fm);
+                    } else {
+                        Picasso.with(getActivity()).setIndicatorsEnabled(true);
+                        Picasso.with(getActivity())
+                                .load(song.getAlbumArtUrl())
+                                .placeholder(R.drawable.droid_fm)
+                                .error(R.drawable.droid_fm)
+                                .fit()
+                                .into(holder.mAlbumImage);
+                    }
+                } else {
+                    PlayerManager.getInstance().getRadioStationsClient().doSongArt(
+                            song.getSongArtist(),
+                            song.getSongTitle(),
+                            Constants.ALBUM_ART_IMAGE_RESOLUTION,
+                            key
+                    );
+                }
+            }
+
+        }
+
+        @Override
+        public int getItemCount() {
+            if (songs != null) {
+                return songs.size();
+            } else {
+                return 0;
+            }
+        }
     }
+
+    private class CardHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private final ImageView mAlbumImage;
+        private final TextView itemSongTitle;
+        private final TextView itemArtistName;
+        private final TextView itemStationCallSign;
+        private Song song;
+        private int mAlbumPosition;
+        private boolean cardClicked = false;
+
+        public CardHolder(View itemView) {
+            super(itemView);
+            itemView.setOnClickListener(this);
+            mAlbumImage = (ImageView) itemView.findViewById(R.id.album_art);
+            itemSongTitle = (TextView) itemView.findViewById(R.id.song_title);
+            itemArtistName = (TextView) itemView.findViewById(R.id.artist_name);
+            itemStationCallSign = (TextView) itemView.findViewById(R.id.station_call_sign);
+
+        }
+
+        public void setSong(Song song) {
+            this.song = song;
+        }
+
+        public void bind(int position) {
+            if (song != null) {
+                Log.v(LOG_TAG, "bind , mAlbumImage.setTransitionName: " + song.getUberUrl().getUrl());
+                Picasso.with(getActivity()).load(song.getUberUrl().getUrl()).into(mAlbumImage);
+                mAlbumImage.setTransitionName(song.getUberUrl().getUrl());
+                mAlbumImage.setTag(song.getUberUrl().getUrl());
+            }
+            mAlbumPosition = position;
+        }
+
+        @Override
+        public void onClick(View v) {
+            //parentActivity.instantiateTopTracksFragment(itemArtist);
+            //parentActivity.onSongSelected(song, itemAlbumArt);
+
+            // to prevent user from double clicking and start activity twice
+            if (!cardClicked) {
+                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                intent.putExtra(EXTRA_STARTING_ALBUM_POSITION, mAlbumPosition);
+
+                Log.v(LOG_TAG, "onClick , mAlbumImage.getTransitionName(): " + mAlbumImage.getTransitionName());
+
+                getActivity().startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(getActivity(),
+                        mAlbumImage, mAlbumImage.getTransitionName()).toBundle());
+                cardClicked = true;
+            }
+        }
+    }*/
 
     public void setSongs(Map<String, Song> songs) {
         Log.v(LOG_TAG, "setSongs : " + this.toString());
 
-        this.songs = songs;
+//        this.songs = songs;
         if (genresListAdapter == null) {
+//            genresListAdapter = new CardAdapter();
             genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
 //            genresListAdapter = new GenresListAdapter();
         }
-        genresListAdapter.setSongs(this.songs );
+//        genresListAdapter.setSongs(this.songs );
         genresListAdapter.notifyDataSetChanged();
     }
 
+/*
     public Map<String, Song> getSongs() {
         return songs;
     }
+*/
 
     @Subscribe
     public void onSongArtEvent(SongArtEvent event) {
@@ -401,18 +557,26 @@ public class GenresFragment extends Fragment {
         SongArtResponse.SongArt songArt = songArtResponse.getSongArt();
         Log.v(LOG_TAG, "onSongArtEvent - song url : " + songArt.getArtUrl());
 
-        String key = songArtResponse.getKey();
+        String songArtKey = songArtResponse.getKey();
 
-        Log.v(LOG_TAG, "onSongArtEvent - song key : " + key);
+        int position = songArtResponse.getPosition();
 
-        if (songs != null) {
-            Song song = songs.get(key);
+//                Log.v(LOG_TAG, "onSongArtEvent - song key : " + songArtKey);
+        Log.v(LOG_TAG, "onSongArtEvent - song position : " + position);
 
-            if (song != null) {
-                final String albumArtUrl = songArt.getArtUrl();
-                //if (albumArtUrl.indexOf("dar.fm") != -1) albumArtUrl = null;
-                song.setAlbumArtUrl(albumArtUrl);
-                genresListAdapter.notifyDataSetChanged();
+        if (PlayerManager.getInstance().getSongsByGenre(key) != null) {
+            Song song = PlayerManager.getInstance().getSongsByGenre(key).get(position);
+
+            Log.v(LOG_TAG, "onSongArtEvent - song getSongTitle : " + song.getSongTitle());
+            Log.v(LOG_TAG, "onSongArtEvent - songArtKey : " + songArtKey);
+
+            if (song.getSongTitle().equals(songArtKey)) {
+                if (song != null) {
+                    final String albumArtUrl = songArt.getArtUrl();
+                    //if (albumArtUrl.indexOf("dar.fm") != -1) albumArtUrl = null;
+                    song.setAlbumArtUrl(albumArtUrl);
+                    genresListAdapter.notifyDataSetChanged();
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 package com.xinay.droid.fm;
 
+import android.app.ActivityOptions;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -11,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -20,11 +22,13 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.transition.TransitionInflater;
+import android.util.ArraySet;
 import android.util.Log;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.SearchView;
@@ -38,18 +42,25 @@ import com.xinay.droid.fm.model.Station;
 import com.xinay.droid.fm.model.TopSongsResponse;
 import com.xinay.droid.fm.model.Track;
 import com.xinay.droid.fm.services.PlayerService;
+import com.xinay.droid.fm.util.Utilities;
 
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static com.xinay.droid.fm.util.Constants.EXTRA_GENRE_KEY;
+import static com.xinay.droid.fm.util.Constants.EXTRA_CURRENT_ALBUM_POSITION;
+import static com.xinay.droid.fm.util.Constants.EXTRA_STARTING_ALBUM_POSITION;
 
 public class MainActivity extends AppCompatActivity implements
         SearchFragment.OnFragmentInteractionListener,
-        GenresFragment.OnFragmentInteractionListener,
-        PlayerFragment.OnFragmentInteractionListener {
+        GenresFragment.OnFragmentInteractionListener {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
@@ -58,26 +69,71 @@ public class MainActivity extends AppCompatActivity implements
     private static final String PLAYER_FRAGMENTS_MAP_KEY = "player_fragments_map";
     private static final String GENRES_FRAGMENTS_MAP_KEY = "genres_fragments_map";
 
-    static final String EXTRA_STARTING_ALBUM_POSITION = "extra_starting_item_position";
-    static final String EXTRA_CURRENT_ALBUM_POSITION = "extra_current_item_position";
+    private Bundle mTmpReenterState;
+
+    private boolean mIsDetailsActivityStarted;
+
+    private final SharedElementCallback mCallback = new SharedElementCallback() {
+        @Override
+        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+            if (mTmpReenterState != null) {
+                int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
+                int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
+                if (startingPosition != currentPosition) {
+                    // If startingPosition != currentPosition the user must have swiped to a
+                    // different page in the DetailsActivity. We must update the shared element
+                    // so that the correct one falls into place.
+                    //String newTransitionName = Utilities.makeTransitionKeyName(mCurrentPosition, currentPosition);
+                    Song song = PlayerManager.getInstance().getSongsByGenre(PlayerManager.GENRES_MAP_KEYS[mCurrentGenresFragmentPosition]).get(currentPosition);
+                    String newTransitionName = song.getUberUrl().getUrl();
+                    Log.v(LOG_TAG, "newTransitionName: " + newTransitionName);
+                    View newSharedElement = mCurrentGenresFragment.getmGenresRecyclerView().findViewWithTag(newTransitionName);
+                    if (newSharedElement != null) {
+                        names.clear();
+                        names.add(newTransitionName);
+                        sharedElements.clear();
+                        sharedElements.put(newTransitionName, newSharedElement);
+                    }
+                }
+
+                mTmpReenterState = null;
+            } else {
+                // If mTmpReenterState is null, then the activity is exiting.
+                View navigationBar = findViewById(android.R.id.navigationBarBackground);
+                View statusBar = findViewById(android.R.id.statusBarBackground);
+                if (navigationBar != null) {
+                    names.add(navigationBar.getTransitionName());
+                    sharedElements.put(navigationBar.getTransitionName(), navigationBar);
+                }
+                if (statusBar != null) {
+                    names.add(statusBar.getTransitionName());
+                    sharedElements.put(statusBar.getTransitionName(), statusBar);
+                }
+            }
+        }
+    };
+
 
     private Intent playerIntent;
-
     private PlayerManager playerManager;
-
     private boolean mMasterDetailPane;
+    private int mCurrentPosition;
 
-    private List<PlayerFragment> playerFragmentsList;
-    //private Map<String, GenresFragment> playerFragmentsMap;
+    private GenresFragment mCurrentGenresFragment;
+    private int mCurrentGenresFragmentPosition;
 
-    private Map<String, GenresFragment> genresFragmentMap = new ArrayMap<>();
+    // private List<PlayerFragment> playerFragmentsList;
+    // private Map<String, GenresFragment> playerFragmentsMap;
+
+    // private Map<String, GenresFragment> genresFragmentMap = new ArrayMap<>();
+//    private Set<String> genresFragmentKeySet = new ArraySet<>();
 
     private String topSongsListPlayingKey;
 
     /**
      * The number of pages to show
      */
-    private static final int NUM_PAGES = 10;
+//    private static final int NUM_PAGES = 10;
 
     /**
      * The pager widget, which handles animation and allows swiping horizontally to access previous
@@ -88,13 +144,21 @@ public class MainActivity extends AppCompatActivity implements
     /**
      * The pager adapter, which provides the pages to the view pager widget.
      */
-    private PagerAdapter mPagerAdapter;
+    //private PagerAdapter mPagerAdapter;
 
-    GenresPagerAdapter mGenresPagerAdapter;
+//    GenresPagerAdapter mGenresPagerAdapter;
 
-    ViewPager mViewPager;
-    TabLayout mTabLayout;
+//    ViewPager mViewPager;
+//    TabLayout mTabLayout;
 
+
+    public boolean isDetailsActivityStarted() {
+        return mIsDetailsActivityStarted;
+    }
+
+    public void setDetailsActivityStarted(boolean detailsActivityStarted) {
+        this.mIsDetailsActivityStarted = detailsActivityStarted;
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -119,32 +183,31 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
-
-
+        setContentView(R.layout.activity_screen_slide);
         setExitSharedElementCallback(mCallback);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         if (savedInstanceState != null) {
             Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
             playerManager = Parcels.unwrap(wrapped);
-            Parcelable wrappedGenres = savedInstanceState.getParcelable(GENRES_FRAGMENTS_MAP_KEY);
-            genresFragmentMap = Parcels.unwrap(wrappedGenres);
-            Parcelable wrappedFragments = savedInstanceState.getParcelable(PLAYER_FRAGMENTS_KEY);
-            playerFragmentsList = Parcels.unwrap(wrappedFragments);
+//            Parcelable wrappedGenres = savedInstanceState.getParcelable(GENRES_FRAGMENTS_MAP_KEY);
+//            genresFragmentMap = Parcels.unwrap(wrappedGenres);
+//            Parcelable wrappedFragments = savedInstanceState.getParcelable(PLAYER_FRAGMENTS_KEY);
+//            playerFragmentsList = Parcels.unwrap(wrappedFragments);
             Log.v(LOG_TAG, "playerManager unwrapped...");
         } else {
 
             playerManager = PlayerManager.getInstance();
 
-            if (playerFragmentsList == null) {
-                Log.v(LOG_TAG, "playerFragmentsList = new ArrayList ");
-                playerFragmentsList = new ArrayList<PlayerFragment>();
-            }
+//            if (playerFragmentsList == null) {
+//                Log.v(LOG_TAG, "playerFragmentsList = new ArrayList ");
+//                playerFragmentsList = new ArrayList<PlayerFragment>();
+//            }
 
         }
 
-        setContentView(R.layout.activity_screen_slide);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         //initGenres();
         Log.v(LOG_TAG, "playerManager.init()...");
@@ -159,25 +222,34 @@ public class MainActivity extends AppCompatActivity implements
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mGenresPagerAdapter = new GenresPagerAdapter(getFragmentManager());
+        //mGenresPagerAdapter = new GenresPagerAdapter(getFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.viewpager);
-        mViewPager.setAdapter(mGenresPagerAdapter);
+        //mViewPager = (ViewPager) findViewById(R.id.viewpager);
+        //mViewPager.setAdapter(mGenresPagerAdapter);
+        final ViewPager pager = (ViewPager) findViewById(R.id.viewpager);
+        pager.setAdapter(new GenresFragmentPagerAdapter(getFragmentManager()));
+        pager.setCurrentItem(mCurrentPosition);
+        pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                mCurrentPosition = position;
+            }
+        });
+
 
         //mPager = (ViewPager) findViewById(R.id.viewpager);
         //mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
 //        mGenresPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
 //        mPager.setAdapter(mGenresPagerAdapter);
 
-        mTabLayout = (TabLayout) findViewById(R.id.tabs);
-        mTabLayout.setupWithViewPager(mViewPager);
-
-
-        mTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(pager);
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                mViewPager.setCurrentItem(tab.getPosition());
+                Log.v(LOG_TAG, "onTabSelected , tab: " + tab.getTag());
+                pager.setCurrentItem(tab.getPosition());
 //                switch (tab.getPosition()) {
 //                    case 0:
 //                        showToast("One");
@@ -268,6 +340,36 @@ public class MainActivity extends AppCompatActivity implements
 //        }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mIsDetailsActivityStarted = false;
+    }
+
+    @Override
+    public void onActivityReenter(int requestCode, Intent data) {
+        super.onActivityReenter(requestCode, data);
+        mTmpReenterState = new Bundle(data.getExtras());
+        int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
+        int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
+        if (startingPosition != currentPosition) {
+//            mRecyclerView.scrollToPosition(currentPosition);
+            mCurrentGenresFragment.getmGenresRecyclerView().scrollToPosition(currentPosition);
+        }
+        postponeEnterTransition();
+
+        mCurrentGenresFragment.getmGenresRecyclerView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                mCurrentGenresFragment.getmGenresRecyclerView().getViewTreeObserver().removeOnPreDrawListener(this);
+                // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
+                mCurrentGenresFragment.getmGenresRecyclerView().requestLayout();
+                startPostponedEnterTransition();
+                return true;
+            }
+        });
+    }
+
 
     public void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
@@ -282,28 +384,28 @@ public class MainActivity extends AppCompatActivity implements
     public void onBackPressed() {
         Log.v(LOG_TAG, "onBackPressed");
 
-        if (mViewPager.getAdapter() == mGenresPagerAdapter) {
-
-            if (mViewPager.getCurrentItem() == 0) {
-                // If the user is currently looking at the first step, allow the system to handle the
-                // Back button. This calls finish() on this activity and pops the back stack.
-                int count = getFragmentManager().getBackStackEntryCount();
-                if (count == 0) {
-                    super.onBackPressed();
-                } else {
-                    getFragmentManager().popBackStack();
-                }
-
-            } else {
-                // Otherwise, select the previous step.
-                mViewPager.setCurrentItem(mViewPager.getCurrentItem() - 1);
-            }
-        } else {
-            mViewPager.setAdapter(mGenresPagerAdapter);
-            mTabLayout.setupWithViewPager(mViewPager);
-            mTabLayout.setVisibility(View.VISIBLE);
-            mPagerAdapter = null;
-        }
+//        if (mViewPager.getAdapter() == mGenresPagerAdapter) {
+//
+//            if (mViewPager.getCurrentItem() == 0) {
+//                // If the user is currently looking at the first step, allow the system to handle the
+//                // Back button. This calls finish() on this activity and pops the back stack.
+//                int count = getFragmentManager().getBackStackEntryCount();
+//                if (count == 0) {
+//                    super.onBackPressed();
+//                } else {
+//                    getFragmentManager().popBackStack();
+//                }
+//
+//            } else {
+//                // Otherwise, select the previous step.
+//                mViewPager.setCurrentItem(mViewPager.getCurrentItem() - 1);
+//            }
+//        } else {
+//            mViewPager.setAdapter(mGenresPagerAdapter);
+//            mTabLayout.setupWithViewPager(mViewPager);
+//            mTabLayout.setVisibility(View.VISIBLE);
+//            mPagerAdapter = null;
+//        }
     }
 
 
@@ -334,7 +436,7 @@ public class MainActivity extends AppCompatActivity implements
                     searchManager.getSearchableInfo(getComponentName()));
             // Assumes current activity is the searchable activity
             searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+            searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
 
         }
 
@@ -372,7 +474,7 @@ public class MainActivity extends AppCompatActivity implements
      * A {@link android.support.v4.app.FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class GenresPagerAdapter extends FragmentStatePagerAdapter {
+/*    public class GenresPagerAdapter extends FragmentStatePagerAdapter {
 //        private final List<Fragment> mFragmentList = new ArrayList<>();
 //        private final List<String> mFragmentTitleList = new ArrayList<>();
 
@@ -424,12 +526,13 @@ public class MainActivity extends AppCompatActivity implements
 //            }
             return titles[position];
         }
-    }
+    }*/
 
     /**
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
+/*
     private class PlayNowSlidePagerAdapter extends FragmentStatePagerAdapter {
         public PlayNowSlidePagerAdapter(FragmentManager fm) {
             super(fm);
@@ -457,51 +560,14 @@ public class MainActivity extends AppCompatActivity implements
             return playerFragmentsList.size();
         }
     }
-
-    @Override
-    public void onPlayerPlayPause() {
-        Log.v(LOG_TAG, "onPlayerPlayPause");
-        playerManager.onPlayerPlayPause();
-    }
-
-    @Override
-    public void onPreparePlayer(Song song) {
-        Log.v(LOG_TAG, "onPreparePlayer");
-        playerManager.onPrepareSong(song);
-    }
-
-    @Override
-    public boolean isPlaying() {
-        return playerManager.isPlaying();
-    }
+*/
 
 
-    private Bundle mTmpReenterState;
-
-    private final SharedElementCallback mCallback = new SharedElementCallback() {
-        @Override
-        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
-            if (mTmpReenterState == null) {
-                // If mTmpReenterState is null, then the activity is exiting.
-                View navigationBar = findViewById(android.R.id.navigationBarBackground);
-                View statusBar = findViewById(android.R.id.statusBarBackground);
-                if (navigationBar != null) {
-                    names.add(navigationBar.getTransitionName());
-                    sharedElements.put(navigationBar.getTransitionName(), navigationBar);
-                }
-                if (statusBar != null) {
-                    names.add(statusBar.getTransitionName());
-                    sharedElements.put(statusBar.getTransitionName(), statusBar);
-                }
-            }
-        }
-    };
-
-    @Override
-    public void onActivityReenter(int requestCode, Intent data) {
-        super.onActivityReenter(requestCode, data);
-        postponeEnterTransition();
-    }
+//    @Override
+//    public void onActivityReenter(int requestCode, Intent data) {
+//        super.onActivityReenter(requestCode, data);
+////        postponeEnterTransition();
+//    }
 
     @Override
     public void onSongSelected(Song song, ImageView imageView) {
@@ -514,41 +580,41 @@ public class MainActivity extends AppCompatActivity implements
         List<Song> songs = playerManager.getSongsByGenre(song.getGroupKey());
         playerManager.setSongs(songs);
 
-        int songIndex = 0;
-        playerFragmentsList = new ArrayList<PlayerFragment>();
-        for (int i = 0; i < songs.size(); i++) {
-            PlayerFragment playerFragment = new PlayerFragment();
-            Song songInList = playerManager.getSongsByGenre(topSongsListPlayingKey).get(i);
-            if (songInList.getSongTitle().equals(song.getSongTitle())) songIndex = i;
-            playerFragment.setSong(songInList);
-            playerFragmentsList.add(i, playerFragment);
-        }
+//        int songIndex = 0;
+//        playerFragmentsList = new ArrayList<PlayerFragment>();
+//        for (int i = 0; i < songs.size(); i++) {
+//            PlayerFragment playerFragment = PlayerFragment.newInstance(3, 3);
+//            Song songInList = playerManager.getSongsByGenre(topSongsListPlayingKey).get(i);
+//            if (songInList.getSongTitle().equals(song.getSongTitle())) songIndex = i;
+//            playerFragment.setSong(songInList);
+//            playerFragmentsList.add(i, playerFragment);
+//        }
 //        playerFragmentsList.notify();
 
         //mViewPager = (ViewPager) findViewById(R.id.viewpager);
-        mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
+//        mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
 //        mViewPager.clearOnPageChangeListeners();
-        mViewPager.setAdapter(mPagerAdapter);
-        mTabLayout.setupWithViewPager(mViewPager);
-        mTabLayout.setVisibility(View.INVISIBLE);
-        mPagerAdapter.notifyDataSetChanged();
-//        mViewPager.notify();
-
-        Log.v(LOG_TAG, "songIndex: " + songIndex);
-        Log.v(LOG_TAG, "mViewPager.getChildCount(): " + mViewPager.getChildCount());
-        mViewPager.setCurrentItem(songIndex);
+//        mViewPager.setAdapter(mPagerAdapter);
+//        mTabLayout.setupWithViewPager(mViewPager);
+//        mTabLayout.setVisibility(View.INVISIBLE);
+//        mPagerAdapter.notifyDataSetChanged();
+////        mViewPager.notify();
+//
+//        Log.v(LOG_TAG, "songIndex: " + songIndex);
+//        Log.v(LOG_TAG, "mViewPager.getChildCount(): " + mViewPager.getChildCount());
+//        mViewPager.setCurrentItem(songIndex);
 
 
 //        if (findViewById(R.id.fragment_container) != null) {
 //            Log.v(LOG_TAG, "playerFragment...");
-            //ArtistListFragment artistListFragment = new ArtistListFragment();
+        //ArtistListFragment artistListFragment = new ArtistListFragment();
 //            PlayerFragment playerFragment = new PlayerFragment();
 //            playerFragment.setSong(song);
 //
 //            playerFragmentsList.add(playerFragment);
 
 
-            // Add the fragment to the 'fragment_container' FrameLayout
+        // Add the fragment to the 'fragment_container' FrameLayout
 //            getFragmentManager().beginTransaction()
 //                    .add(R.id.fragment_container, playerFragmentsList.get(songIndex))
 //                    .addToBackStack(null)
@@ -591,7 +657,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "onTrackSelected - put extra: track id=" + track.getId());
 
         FragmentManager fragmentManager = getFragmentManager();
-        PlayerFragment newFragment = PlayerFragment.newInstance();
+//        PlayerFragment newFragment = PlayerFragment.newInstance(4, 4);
 
         //trackIndex = track.getIndex();
 
@@ -600,13 +666,13 @@ public class MainActivity extends AppCompatActivity implements
 //            newFragment.show(fragmentManager, "dialog");
         } else {
             // The device is smaller, so show the fragment fullscreen
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
+//            FragmentTransaction transaction = fragmentManager.beginTransaction();
             // For a little polish, specify a transition animation
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+//            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             // To make it fullscreen, use the 'content' root view as the container
             // for the fragment, which is always the root view for the activity
-            transaction.add(android.R.id.content, newFragment)
-                    .addToBackStack(null).commit();
+//            transaction.add(android.R.id.content, newFragment)
+//                    .addToBackStack(null).commit();
         }
 //        Intent intent = new Intent(this, PlayerActivity.class)
 //                .putExtra(Constants.ARTIST_NAME_KEY, artistName)
@@ -621,4 +687,45 @@ public class MainActivity extends AppCompatActivity implements
         FragmentManager fragmentManager = getFragmentManager();
     }
 
+
+
+    private class GenresFragmentPagerAdapter extends FragmentStatePagerAdapter {
+        private final String[] titles = {
+                "Top USA",
+                "Rock",
+                "80's",
+                "90's",
+                "Hip Hop",
+                "Clasica"
+        };
+
+        public GenresFragmentPagerAdapter(FragmentManager fm) {
+            super(fm);
+            Log.v(LOG_TAG, "GenresFragmentPagerAdapter(fm)");
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            Log.v(LOG_TAG, "GenresFragmentPagerAdapter , getItem: " + position);
+            return GenresFragment.newInstance(PlayerManager.GENRES_MAP_KEYS[position]);
+        }
+
+        @Override
+        public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            super.setPrimaryItem(container, position, object);
+            mCurrentGenresFragmentPosition = position;
+            mCurrentGenresFragment = (GenresFragment) object;
+        }
+
+        @Override
+        public int getCount() {
+//            Log.v(LOG_TAG, "GenresFragmentPagerAdapter , getCount: " + titles.length);
+            return titles.length;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return titles[position];
+        }
+    }
 }

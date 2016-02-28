@@ -4,11 +4,9 @@ import android.util.Log;
 
 import com.squareup.otto.Produce;
 import com.xinay.droid.fm.bus.BusProvider;
-import com.xinay.droid.fm.event.ArtistSearchEvent;
 import com.xinay.droid.fm.event.SongArtEvent;
 import com.xinay.droid.fm.event.TopSongsEvent;
 import com.xinay.droid.fm.event.TopTracksEvent;
-import com.xinay.droid.fm.model.ArtistSearchResponse;
 import com.xinay.droid.fm.model.PlaylistResponse;
 import com.xinay.droid.fm.model.Song;
 import com.xinay.droid.fm.model.SongArtResponse;
@@ -16,12 +14,8 @@ import com.xinay.droid.fm.model.TopSongsResponse;
 import com.xinay.droid.fm.model.TopTracksResponse;
 import com.xinay.droid.fm.services.DarStationsResponse;
 import com.xinay.droid.fm.services.ServiceHelper;
-import com.xinay.droid.fm.util.Constants;
-import com.xinay.droid.fm.util.StringUtilities;
+import com.xinay.droid.fm.util.Utilities;
 
-import org.parceler.Parcel;
-
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +25,7 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 import retrofit2.http.GET;
-import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
@@ -83,12 +75,15 @@ public class RadioStationsClient {
 
     }
 
-    public void doSongArt(String artist, String title, String res, final String key) {
+    public void doSongArt(String artist, String title, String res, final int position) {
+
+        final String key = title;
+
         String encodedArtistSearch = "";
         String encodedTitleSearch = "";
         try {
-            encodedArtistSearch = StringUtilities.makeUrlEncoded(artist);
-            encodedTitleSearch = StringUtilities.makeUrlEncoded(title);
+            encodedArtistSearch = Utilities.makeUrlEncoded(artist);
+            encodedTitleSearch = Utilities.makeUrlEncoded(title);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -111,6 +106,7 @@ public class RadioStationsClient {
 
                 SongArtResponse songArtResponse = response.body();
                 songArtResponse.setKey(key);
+                songArtResponse.setPosition(position);
 
                 BusProvider.getInstance().post(produceSongArtEvent(songArtResponse));
 
@@ -141,7 +137,7 @@ public class RadioStationsClient {
     public void doTopSongs(final String searchTerm){
         String encodedSearch = null;
         try {
-            encodedSearch = StringUtilities.makeUrlEncoded(searchTerm);
+            encodedSearch = Utilities.makeUrlEncoded(searchTerm);
         } catch (UnsupportedEncodingException e) {
             // TODO toast encoding error
             e.printStackTrace();
