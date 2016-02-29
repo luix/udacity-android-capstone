@@ -563,12 +563,13 @@ public class GenresFragment extends Fragment {
 
 //                Log.v(LOG_TAG, "onSongArtEvent - song key : " + songArtKey);
         Log.v(LOG_TAG, "onSongArtEvent - song position : " + position);
+        Log.v(LOG_TAG, "onSongArtEvent - songArtKey : " + songArtKey);
+        Log.v(LOG_TAG, "onSongArtEvent - songs.size: " + PlayerManager.getInstance().getSongsByGenre(key).size());
 
-        if (PlayerManager.getInstance().getSongsByGenre(key) != null) {
+        if (PlayerManager.getInstance().getSongsByGenre(key) != null && position < PlayerManager.getInstance().getSongsByGenre(key).size()) {
             Song song = PlayerManager.getInstance().getSongsByGenre(key).get(position);
 
             Log.v(LOG_TAG, "onSongArtEvent - song getSongTitle : " + song.getSongTitle());
-            Log.v(LOG_TAG, "onSongArtEvent - songArtKey : " + songArtKey);
 
             if (song.getSongTitle().equals(songArtKey)) {
                 if (song != null) {

@@ -65,9 +65,6 @@ public class MainActivity extends AppCompatActivity implements
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private static final String PLAYER_MANAGER_KEY = "player_manager";
-    private static final String PLAYER_FRAGMENTS_KEY = "player_fragments_list";
-    private static final String PLAYER_FRAGMENTS_MAP_KEY = "player_fragments_map";
-    private static final String GENRES_FRAGMENTS_MAP_KEY = "genres_fragments_map";
 
     private Bundle mTmpReenterState;
 
@@ -76,7 +73,9 @@ public class MainActivity extends AppCompatActivity implements
     private final SharedElementCallback mCallback = new SharedElementCallback() {
         @Override
         public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+            Log.v(LOG_TAG, "SharedElementCallback...");
             if (mTmpReenterState != null) {
+                Log.v(LOG_TAG, "SharedElementCallback , mTmpReenterState != null");
                 int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
                 int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
                 if (startingPosition != currentPosition) {
@@ -84,6 +83,8 @@ public class MainActivity extends AppCompatActivity implements
                     // different page in the DetailsActivity. We must update the shared element
                     // so that the correct one falls into place.
                     //String newTransitionName = Utilities.makeTransitionKeyName(mCurrentPosition, currentPosition);
+                    Log.v(LOG_TAG, "GENRES_MAP_KEYS: " + PlayerManager.GENRES_MAP_KEYS[mCurrentGenresFragmentPosition]);
+                    Log.v(LOG_TAG, "currentPosition: " + currentPosition);
                     Song song = PlayerManager.getInstance().getSongsByGenre(PlayerManager.GENRES_MAP_KEYS[mCurrentGenresFragmentPosition]).get(currentPosition);
                     String newTransitionName = song.getUberUrl().getUrl();
                     Log.v(LOG_TAG, "newTransitionName: " + newTransitionName);
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements
     // private Map<String, GenresFragment> genresFragmentMap = new ArrayMap<>();
 //    private Set<String> genresFragmentKeySet = new ArraySet<>();
 
-    private String topSongsListPlayingKey;
+//    private String topSongsListPlayingKey;
 
     /**
      * The number of pages to show
@@ -574,7 +575,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "onSongSelected - song title: " + song.getSongTitle());
         Log.v(LOG_TAG, "onSongSelected - group key: " + song.getGroupKey());
 
-        topSongsListPlayingKey = song.getGroupKey();
+//        topSongsListPlayingKey = song.getGroupKey();
 
         playerManager.setCurrentSong(song);
         List<Song> songs = playerManager.getSongsByGenre(song.getGroupKey());
