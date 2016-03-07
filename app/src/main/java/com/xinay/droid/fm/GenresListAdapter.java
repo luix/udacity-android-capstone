@@ -102,7 +102,7 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
 
 //        Song song = songs.get(key);
 
-        Song song = PlayerManager.getInstance().getSongsByGenre(mGenre).get(position);
+        Song song = parentActivity.getPlayerManager().getSongsByGenre(mGenre).get(position);
         if (song != null) {
             viewHolder.setSong(song);
             viewHolder.itemSongTitle.setText(song.getSongTitle());
@@ -141,7 +141,7 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
 
     @Override
     public int getItemCount() {
-        return PlayerManager.getInstance().getSongsByGenre(mGenre).size();
+        return parentActivity.getPlayerManager().getSongsByGenre(mGenre).size();
 //        if (songs != null) {
 //            return songs.size();
 //        } else {
@@ -189,8 +189,8 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
             // to prevent user from double clicking and start activity twice
             if (!parentActivity.isDetailsActivityStarted()) {
 
-                PlayerManager.getInstance().setCurrentSong(song);
-                PlayerManager.getInstance().setSongs(PlayerManager.getInstance().getSongsByGenre(song.getGroupKey()));
+                parentActivity.getPlayerManager().setCurrentSong(song);
+                parentActivity.getPlayerManager().setSongs(PlayerManager.getInstance().getSongsByGenre(song.getGroupKey()));
 
                 Intent intent = new Intent(parentActivity, PlayerActivity.class);
                 intent.putExtra(EXTRA_GENRE_KEY, song.getGroupKey());

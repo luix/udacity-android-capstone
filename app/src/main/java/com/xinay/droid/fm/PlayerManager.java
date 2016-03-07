@@ -234,7 +234,11 @@ public class PlayerManager {
         for (Song song : songs) {
             song.setGroupKey(key);
         }
+        genresMapSongs.put(key, new ArrayList<Song>());
+        Log.v(LOG_TAG, "genresMapSongs.get(" + key + ").addAll()");
         genresMapSongs.get(key).addAll(songs);
+
+        Log.v(LOG_TAG, "genresMapSongs.size: " + genresMapSongs.get(key).size());
 
 //        if (playerService != null) {
 //            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());

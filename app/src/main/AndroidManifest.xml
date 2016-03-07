@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
     <application
         android:allowBackup="true"
@@ -45,7 +46,26 @@
             android:name=".PlayerActivity"
             android:label="@string/title_activity_player"></activity>
 
-        <service android:name=".services.PlayerService" />
+        <service android:name=".services.PlayerService"
+            android:exported="true"
+            android:enabled="true" />
+
+        <receiver android:name=".DroidfmAppWidgetProvider" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/droidfm_appwidget_info" />
+        </receiver>
+
+        <receiver android:name=".receiver.NotificationBroadcast" >
+            <intent-filter>
+                <action android:name="com.xinay.droid.fm.delete" />
+                <action android:name="com.xinay.droid.fm.pause" />
+                <action android:name="com.xinay.droid.fm.play" />
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

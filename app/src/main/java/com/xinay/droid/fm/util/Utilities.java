@@ -2,6 +2,7 @@ package com.xinay.droid.fm.util;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.Context;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -32,5 +33,15 @@ public class Utilities {
         final ActivityManager activityManager = (ActivityManager) activity.getSystemService(Activity.ACTIVITY_SERVICE);
         activityManager.getMemoryInfo(memoryInfo);
         return memoryInfo.availMem;
+    }
+
+    public static boolean isServiceRunning(String serviceName, Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for(ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if(serviceName.equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

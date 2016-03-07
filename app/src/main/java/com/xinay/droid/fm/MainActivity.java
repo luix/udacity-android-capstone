@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -116,12 +117,15 @@ public class MainActivity extends AppCompatActivity implements
 
 
     private Intent playerIntent;
+
     private PlayerManager playerManager;
     private boolean mMasterDetailPane;
     private int mCurrentPosition;
 
     private GenresFragment mCurrentGenresFragment;
     private int mCurrentGenresFragmentPosition;
+
+    private AppBarLayout mAppBarLayout;
 
     // private List<PlayerFragment> playerFragmentsList;
     // private Map<String, GenresFragment> playerFragmentsMap;
@@ -161,6 +165,10 @@ public class MainActivity extends AppCompatActivity implements
         this.mIsDetailsActivityStarted = detailsActivityStarted;
     }
 
+    public PlayerManager getPlayerManager() {
+        return playerManager;
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -185,10 +193,11 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_screen_slide);
-        setExitSharedElementCallback(mCallback);
 
+        mAppBarLayout = (AppBarLayout) findViewById(R.id.appbar_layout);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mAppBarLayout.setExpanded(false);
 
         if (savedInstanceState != null) {
             Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
@@ -326,6 +335,12 @@ public class MainActivity extends AppCompatActivity implements
         Intent playerService = new Intent(this, PlayerService.class);
         startService(playerService);
 
+        setExitSharedElementCallback(mCallback);
+
+
+
+
+
 //        if (findViewById(R.id.fragment_container) != null) {
 //
 //            Log.v(LOG_TAG, "playerFragment...");
@@ -349,12 +364,14 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onActivityReenter(int requestCode, Intent data) {
+        Log.v(LOG_TAG, "onActivityReenter");
         super.onActivityReenter(requestCode, data);
         mTmpReenterState = new Bundle(data.getExtras());
         int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ALBUM_POSITION);
         int currentPosition = mTmpReenterState.getInt(EXTRA_CURRENT_ALBUM_POSITION);
         if (startingPosition != currentPosition) {
 //            mRecyclerView.scrollToPosition(currentPosition);
+            Log.v(LOG_TAG, "mGenresRecyclerView.scrollToPosition()...");
             mCurrentGenresFragment.getmGenresRecyclerView().scrollToPosition(currentPosition);
         }
         postponeEnterTransition();
@@ -362,6 +379,7 @@ public class MainActivity extends AppCompatActivity implements
         mCurrentGenresFragment.getmGenresRecyclerView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
+                Log.v(LOG_TAG, "getViewTreeObserver().addOnPreDrawListener()...");
                 mCurrentGenresFragment.getmGenresRecyclerView().getViewTreeObserver().removeOnPreDrawListener(this);
                 // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
                 mCurrentGenresFragment.getmGenresRecyclerView().requestLayout();
@@ -707,7 +725,7 @@ public class MainActivity extends AppCompatActivity implements
 
         @Override
         public Fragment getItem(int position) {
-            Log.v(LOG_TAG, "GenresFragmentPagerAdapter , getItem: " + position);
+            Log.v(LOG_TAG, "GenresFragmentPagerAdapter , getItem: " + position + " , key: " + PlayerManager.GENRES_MAP_KEYS[position]);
             return GenresFragment.newInstance(PlayerManager.GENRES_MAP_KEYS[position]);
         }
 
