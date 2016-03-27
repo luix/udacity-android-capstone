@@ -20,6 +20,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -161,6 +163,10 @@ public class PlayerFragment extends Fragment {
         mSongTitle = (TextView) rootView.findViewById(R.id.song_title);
         mArtistName = (TextView) rootView.findViewById(R.id.artist_name);
         mStationId = (TextView) rootView.findViewById(R.id.station_id);
+
+        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
 
         Log.v(LOG_TAG, "albumArtUrl: " + albumArtUrl);
         if (albumArtUrl != null) {

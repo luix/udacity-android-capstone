@@ -23,6 +23,9 @@
     <string name="pause">Pause</string>
     <string name="play">Play</string>
 
+    <string name="analytics_tracking_id">UA-75616877-1</string>
+    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+
     <!-- TODO: Remove or change these placeholder texts -->
     <string name="hello_world">Hello world!</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>

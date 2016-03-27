@@ -1,5 +1,6 @@
 package com.xinay.droid.fm;
 
+import android.Manifest;
 import android.app.ActivityOptions;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -8,14 +9,18 @@ import android.app.SearchManager;
 import android.app.SharedElementCallback;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.view.PagerAdapter;
@@ -35,6 +40,13 @@ import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.squareup.otto.Subscribe;
 import com.xinay.droid.fm.bus.BusProvider;
 import com.xinay.droid.fm.event.TopSongsEvent;
@@ -60,6 +72,8 @@ import static com.xinay.droid.fm.util.Constants.EXTRA_CURRENT_ALBUM_POSITION;
 import static com.xinay.droid.fm.util.Constants.EXTRA_STARTING_ALBUM_POSITION;
 
 public class MainActivity extends AppCompatActivity implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
         SearchFragment.OnFragmentInteractionListener,
         GenresFragment.OnFragmentInteractionListener {
 
@@ -122,6 +136,8 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mMasterDetailPane;
     private int mCurrentPosition;
 
+    private GoogleApiClient mGoogleApiClient;
+
     private GenresFragment mCurrentGenresFragment;
     private int mCurrentGenresFragmentPosition;
 
@@ -155,8 +171,6 @@ public class MainActivity extends AppCompatActivity implements
 
 //    ViewPager mViewPager;
 //    TabLayout mTabLayout;
-
-
     public boolean isDetailsActivityStarted() {
         return mIsDetailsActivityStarted;
     }
@@ -198,6 +212,17 @@ public class MainActivity extends AppCompatActivity implements
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mAppBarLayout.setExpanded(false);
+
+        // Create an instance of GoogleAPIClient.
+        if (mGoogleApiClient == null) {
+            Log.v(LOG_TAG, "new GoogleApiClient.Builder()...");
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+            Log.v(LOG_TAG, "mGoogleApiClient build!");
+        }
 
         if (savedInstanceState != null) {
             Parcelable wrapped = savedInstanceState.getParcelable(PLAYER_MANAGER_KEY);
@@ -272,9 +297,11 @@ public class MainActivity extends AppCompatActivity implements
 //                        break;
 //                }
             }
+
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
             }
+
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
             }
@@ -338,9 +365,6 @@ public class MainActivity extends AppCompatActivity implements
         setExitSharedElementCallback(mCallback);
 
 
-
-
-
 //        if (findViewById(R.id.fragment_container) != null) {
 //
 //            Log.v(LOG_TAG, "playerFragment...");
@@ -396,7 +420,23 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onStart() {
+        Log.v(LOG_TAG, "onStart");
+        if (mGoogleApiClient != null) {
+            Log.v(LOG_TAG, "mGoogleApiClient.connect()");
+            mGoogleApiClient.connect();
+        }
         super.onStart();
+    }
+
+
+    @Override
+    protected void onStop() {
+        Log.v(LOG_TAG, "onStop");
+        if (mGoogleApiClient != null) {
+            Log.v(LOG_TAG, "mGoogleApiClient.disconnect()");
+            mGoogleApiClient.disconnect();
+        }
+        super.onStop();
     }
 
     @Override
@@ -451,12 +491,13 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "search - searchView: " + searchView.toString());
 
         if (searchView != null) {
-            searchView.setSearchableInfo(
-                    searchManager.getSearchableInfo(getComponentName()));
+//            Log.v(LOG_TAG, "searchView.setSearchableInfo()...");
+//            searchView.setSearchableInfo(
+//                    searchManager.getSearchableInfo(getComponentName()));
             // Assumes current activity is the searchable activity
+            Log.v(LOG_TAG, "searchView.setSearchableInfo()...");
             searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
             searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
-
         }
 
         return true;
@@ -472,7 +513,33 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-//    @Override
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.v(LOG_TAG, "onConnected()...");
+        // Check if Corase Location Permission has been granted
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        Location location = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (location != null) {
+            Tracker tracker = ((DroidfmApplication)getApplication()).getDefaultTracker();
+            tracker.setLocation("Location~Latitude" + String.valueOf(location.getLatitude()) + "~Longitude~" + String.valueOf(location.getLongitude()));
+            tracker.send(new HitBuilders.ScreenViewBuilder().build());
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.v(LOG_TAG, "onConnectionSuspended()...");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.v(LOG_TAG, "onConnectionFailed()...");
+    }
+
+    //    @Override
 //    public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
 //        // When the given tab is selected, switch to the corresponding page in
 //        // the ViewPager.
@@ -706,8 +773,6 @@ public class MainActivity extends AppCompatActivity implements
         FragmentManager fragmentManager = getFragmentManager();
     }
 
-
-
     private class GenresFragmentPagerAdapter extends FragmentStatePagerAdapter {
         private final String[] titles = {
                 "Top USA",
@@ -726,6 +791,11 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public Fragment getItem(int position) {
             Log.v(LOG_TAG, "GenresFragmentPagerAdapter , getItem: " + position + " , key: " + PlayerManager.GENRES_MAP_KEYS[position]);
+
+            Tracker tracker = ((DroidfmApplication)getApplication()).getDefaultTracker();
+            tracker.setScreenName("GenreScreen~" + PlayerManager.GENRES_MAP_KEYS[position]);
+            tracker.send(new HitBuilders.ScreenViewBuilder().build());
+
             return GenresFragment.newInstance(PlayerManager.GENRES_MAP_KEYS[position]);
         }
 

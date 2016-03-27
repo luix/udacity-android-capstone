@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.model.Song;
 
@@ -122,6 +124,13 @@ public class PlayerActivity extends AppCompatActivity implements
 
         @Override
         public Fragment getItem(int position) {
+
+            Song song = PlayerManager.getInstance().getSongsByGenre(mGenre).get(position);
+
+            Tracker tracker = ((DroidfmApplication)getApplication()).getDefaultTracker();
+            tracker.setScreenName("StationScreen~" + song.getStationId() + "~Artist~" + song.getSongArtist() + "~SongTitle~" + song.getSongTitle());
+            tracker.send(new HitBuilders.ScreenViewBuilder().build());
+
             return PlayerFragment.newInstance(mGenre, position, mStartingPosition);
         }
 

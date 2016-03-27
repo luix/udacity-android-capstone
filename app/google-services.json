@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_id": "droid-fm",
+    "project_number": "211776059532",
+    "name": "Droid-fm"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211776059532:android:514ebda562e08892",
+        "client_id": "android:com.xinay.droid.fm",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.xinay.droid.fm",
+          "certificate_hash": []
+        }
+      },
+      "oauth_client": [],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-75616877-1"
+          }
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 1
+        },
+        "ads_service": {
+          "status": 2,
+          "test_banner_ad_unit_id": "ca-app-pub-3940256099942544/6300978111",
+          "test_interstitial_ad_unit_id": "ca-app-pub-3940256099942544/1033173712"
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}
