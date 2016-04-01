@@ -35,48 +35,14 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
     final static String LOG_TAG = GenresListAdapter.class.getSimpleName();
 
     private Context context;
-    // track songs
-//    private Map<String, Song> songs;
-//    private List<String> keys;
     private String mGenre;
 
     static MainActivity parentActivity;
-
-
-//    public GenresListAdapter() {
-//        Log.v(LOG_TAG, "GenresListAdapter - empty constructor");
-//    }
-
-/*
-    */
-/**
- * A callback interface that all activities containing this fragment must
- * implement. This mechanism allows activities to be notified of item
- * selections.
- *//*
-
-    public interface OnItemClickListener {
-        */
-    /**
-     * GenresFragmentCallback for when an item has been selected.
-     *//*
-
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id);
-    }
-*/
 
     public GenresListAdapter(MainActivity activity) {
         Log.v(LOG_TAG, "GenresListAdapter - non-empty constructor");
         parentActivity = activity;
     }
-
-//    public void setSongs(Map<String, Song> songs) {
-//        Log.v(LOG_TAG, "setTracks www - songs.size()=" + songs.size());
-//        this.songs = songs;
-//        keys = new ArrayList<>();
-//        keys.addAll(songs.keySet());
-//    }
-
 
     public void setGenre(String genre) {
         this.mGenre = genre;
@@ -84,7 +50,6 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        Log.v(LOG_TAG, "onCreateViewHolder - " + this.toString());
         context = viewGroup.getContext();
         return new ViewHolder(LayoutInflater.from(context)
                 .inflate(R.layout.card_song, viewGroup, false));
@@ -92,26 +57,16 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        Log.v(LOG_TAG, "onBindViewHolder");
-//        if (songs == null || viewHolder == null) {
-//            return;
-//        }
-
-//        String key = keys.get(position);
-//        Log.v(LOG_TAG, "song key " + key);
-
-//        Song song = songs.get(key);
-
         Song song = parentActivity.getPlayerManager().getSongsByGenre(mGenre).get(position);
         if (song != null) {
             viewHolder.setSong(song);
             viewHolder.itemSongTitle.setText(song.getSongTitle());
             viewHolder.itemArtistName.setText(song.getSongArtist());
             viewHolder.itemStationCallSign.setText(song.getCallSign());
-            Log.v(LOG_TAG, "song title " + song.getSongTitle());
-            Log.v(LOG_TAG, "song artist : " + song.getSongArtist());
-            Log.v(LOG_TAG, "albumArtUrl: " + song.getAlbumArtUrl());
-            Log.v(LOG_TAG, "song group key " + song.getGroupKey());
+            //Log.v(LOG_TAG, "song title " + song.getSongTitle());
+            //Log.v(LOG_TAG, "song artist : " + song.getSongArtist());
+            //Log.v(LOG_TAG, "albumArtUrl: " + song.getAlbumArtUrl());
+            //Log.v(LOG_TAG, "song group key " + song.getGroupKey());
             if (song.getAlbumArtUrl() != null) {
                 viewHolder.itemAlbumArt.setTransitionName(song.getUberUrl().getUrl());
                 viewHolder.itemAlbumArt.setTag(song.getUberUrl().getUrl());
@@ -142,11 +97,6 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
     @Override
     public int getItemCount() {
         return parentActivity.getPlayerManager().getSongsByGenre(mGenre).size();
-//        if (songs != null) {
-//            return songs.size();
-//        } else {
-//            return 0;
-//        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder
@@ -171,14 +121,6 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
             itemStationCallSign = (TextView) view.findViewById(R.id.station_call_sign);
         }
 
-/*
-        public void bind(int position) {
-            itemAlbumArt.setTransitionName(song.getUberUrl().getUrl());
-            itemAlbumArt.setTag(song.getUberUrl().getUrl());
-            mAlbumPosition = position;
-        }
-*/
-
         @Override
         public void onClick(View v) {
             Log.v(LOG_TAG, "onClick - song title: " + song.getSongTitle());
@@ -199,7 +141,7 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
                 Log.v(LOG_TAG, "parentActivity.startActivity() -  itemAlbumArt.getTransitionName: " + itemAlbumArt.getTransitionName());
                 parentActivity.startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(parentActivity,
                         itemAlbumArt, itemAlbumArt.getTransitionName()).toBundle());
-//                parentActivity.startActivity(intent);
+                //parentActivity.startActivity(intent);
 
                 parentActivity.setDetailsActivityStarted(true);
             }

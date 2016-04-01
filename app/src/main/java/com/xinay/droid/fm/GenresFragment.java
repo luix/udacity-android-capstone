@@ -100,18 +100,6 @@ public class GenresFragment extends Fragment {
                 }
 
                 mTmpReenterState = null;
-//            } else {
-//                // If mTmpReenterState is null, then the activity is exiting.
-//                View navigationBar = findViewById(android.R.id.navigationBarBackground);
-//                View statusBar = findViewById(android.R.id.statusBarBackground);
-//                if (navigationBar != null) {
-//                    names.add(navigationBar.getTransitionName());
-//                    sharedElements.put(navigationBar.getTransitionName(), navigationBar);
-//                }
-//                if (statusBar != null) {
-//                    names.add(statusBar.getTransitionName());
-//                    sharedElements.put(statusBar.getTransitionName(), statusBar);
-//                }
             }
         }
     };
@@ -121,8 +109,8 @@ public class GenresFragment extends Fragment {
 
     public static GenresFragment newInstance(String key) {
         Bundle args = new Bundle();
-//        args.putInt(ARG_ALBUM_IMAGE_POSITION, position);
-//        args.putInt(ARG_STARTING_ALBUM_IMAGE_POSITION, startingPosition);
+        //args.putInt(ARG_ALBUM_IMAGE_POSITION, position);
+        //args.putInt(ARG_STARTING_ALBUM_IMAGE_POSITION, startingPosition);
         GenresFragment fragment = new GenresFragment();
         fragment.setKey(key);
         fragment.setArguments(args);
@@ -133,9 +121,6 @@ public class GenresFragment extends Fragment {
         // Required empty public constructor
         //genresListAdapter = new GenresListAdapter();
         Log.v(LOG_TAG, "GenresFragment - new GenresListAdapter() ");
-//        genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
-
-//        keys = new ArrayList<>();
     }
 
     /**
@@ -149,25 +134,6 @@ public class GenresFragment extends Fragment {
          */
         public void onSongSelected(Song song, ImageView imageView);
     }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * param param1 Parameter 1.
-     * param param2 Parameter 2.
-     * @return A new instance of fragment GenresFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-//    public static GenresFragment newInstance(String param1, String param2) {
-//        GenresFragment fragment = new GenresFragment();
-//        Bundle args = new Bundle();
-////        args.putString(ARG_PARAM1, param1);
-////        args.putString(ARG_PARAM2, param2);
-////        fragment.setArguments(args);
-//        return fragment;
-//    }
-
 
     public RecyclerView getmGenresRecyclerView() {
         return mGenresRecyclerView;
@@ -193,22 +159,6 @@ public class GenresFragment extends Fragment {
             key = savedInstanceState.getString(Constants.EXTRA_GENRE_KEY);
             currentPosition = savedInstanceState.getInt(Constants.EXTRA_CURRENT_ALBUM_POSITION);
         }
-//        Log.v(LOG_TAG, "setExitSharedElementCallback(mCallback)");
-//        setExitSharedElementCallback(mCallback);
-
-//        if (PlayerManager.getInstance().getSongsByGenre(key) == null) {
-//            PlayerManager.getInstance().getSongsByGenre(key);
-//        }
-
-//        if (songs == null) {
-//            Log.v(LOG_TAG, "getSongsByGenre");
-//            initSongs();
-//            //PlayerManager.getInstance().getRadioStationsClient().doTopSongs(key);
-//        }
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
         BusProvider.getInstance().register(this);
     }
 
@@ -224,24 +174,6 @@ public class GenresFragment extends Fragment {
         BusProvider.getInstance().unregister(this);
         super.onDestroy();
     }
-
-/*
-    private void initSongs() {
-        Log.v(LOG_TAG, "initSongs : " + this.toString());
-        List<Song> songs = PlayerManager.getInstance().getSongsByGenre(key);
-        if (songs != null) {
-            Map<String, Song> songMap = new HashMap<>();
-            int idx = 0;
-            for (Song song : songs) {
-                String songKey = this.toString() + idx;
-                Log.v(LOG_TAG, "songKey: " + songKey);
-                songMap.put(songKey, song);
-                idx++;
-            }
-            this.setSongs(songMap);
-        }
-    }
-*/
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -265,33 +197,13 @@ public class GenresFragment extends Fragment {
 
         if (genresListAdapter == null) {
             Log.v(LOG_TAG, "new GenresListAdapter...");
-//            genresListAdapter = new CardAdapter();
             genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
-//            genresListAdapter = new GenresListAdapter();
         }
-//        initSongs();
-//        if (PlayerManager.getInstance().getSongsByGenre(key) != null) {
-//            genresListAdapter.setSongs(songs);
         Log.v(LOG_TAG, "genresListAdapter.setGenre(key) , key: " + key);
         genresListAdapter.setGenre(key);
             genresListAdapter.notifyDataSetChanged();
-//        }
         Log.v(LOG_TAG, "mGenresRecyclerView.setAdapter...");
         mGenresRecyclerView.setAdapter(genresListAdapter);
-
-//        genresListAdapter.setSongs(songs);
-//        mGenresRecyclerView.setAdapter(genresListAdapter);
-
-        //        mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-//            @Override
-//            public boolean onPreDraw() {
-//                mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-//                // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
-//                mRecyclerView.requestLayout();
-//                startPostponedEnterTransition();
-//                return true;
-//            }
-//        });
 
         if (savedInstanceState != null) {
             Log.v(LOG_TAG, "scrollToPosition - currentPosition: " + currentPosition);
@@ -317,12 +229,6 @@ public class GenresFragment extends Fragment {
             });
         }
 
-//        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Toast.makeText(getActivity(), "Position: " + position, Toast.LENGTH_SHORT).show();
-//            }
-//        });
         return view;
     }
 
@@ -334,272 +240,38 @@ public class GenresFragment extends Fragment {
         genresListAdapter.notifyDataSetChanged();
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-//    public void onButtonPressed(Uri uri) {
-//        if (mListener != null) {
-//            mListener.onFragmentInteraction(uri);
-//        }
-//    }
-
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
-
-//    @Override
-//    public void onDetach() {
-//        super.onDetach();
-//        mListener = null;
-//    }
-
-
-/*    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        String imageTransitionName = "";
-        String textTransitionName = "";
-
-        ImageView imageView = (ImageView) view.findViewById(R.id.album_art);
-
-        //TextView textView = (TextView) view.findViewById(R.id.textView);
-
-        //ImageView staticImage = (ImageView) getView().findViewById(R.id.imageView);
-
-        PlayerFragment endFragment = new PlayerFragment();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setSharedElementReturnTransition(TransitionInflater.from(
-                    getActivity()).inflateTransition(R.transition.change_image_trans));
-            setExitTransition(TransitionInflater.from(
-                    getActivity()).inflateTransition(android.R.transition.fade));
-
-            endFragment.setSharedElementEnterTransition(TransitionInflater.from(
-                    getActivity()).inflateTransition(R.transition.change_image_trans));
-            endFragment.setEnterTransition(TransitionInflater.from(
-                    getActivity()).inflateTransition(android.R.transition.fade));
-
-            imageTransitionName = imageView.getTransitionName();
-            //textTransitionName = textView.getTransitionName();
-
-            // Create new fragment to add (Fragment B)
-            Fragment fragment = PlayerFragment.newInstance();
-            fragment.setSharedElementEnterTransition(TransitionInflater.from(getActivity()).inflateTransition(R.transition.change_image_trans));
-            fragment.setEnterTransition(TransitionInflater.from(getActivity()).inflateTransition(android.R.transition.explode));
-
-            // Our shared element (in Fragment A)
-            //mProductImage   = (ImageView) mLayout.findViewById(R.id.product_detail_image);
-
-            // Add Fragment B
-            FragmentTransaction ft = getFragmentManager().beginTransaction()
-                    .replace(R.id.container, fragment)
-                    .addToBackStack("transaction")
-                    .addSharedElement(imageView, "MyTransition");
-            ft.commit();
-
-
-        }
-
-        Bundle bundle = new Bundle();
-        bundle.putString("TRANS_NAME", imageTransitionName);
-        //bundle.putString("ACTION", textView.getText().toString());
-        //bundle.putString("TRANS_TEXT", textTransitionName);
-        bundle.putParcelable("IMAGE", ((BitmapDrawable) imageView.getDrawable()).getBitmap());
-        endFragment.setArguments(bundle);
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, endFragment)
-                .addToBackStack("Payment")
-                .addSharedElement(imageView, imageTransitionName)
-                //.addSharedElement(textView, textTransitionName)
-                //.addSharedElement(staticImage, getString(R.string.fragment_image_trans))
-                .commit();
-    }*/
-
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-//    public interface OnFragmentInteractionListener {
-//        // TODO: Update argument type and name
-//        void onFragmentInteraction(Uri uri);
-//    }
-
-/*
-    private class CardAdapter extends RecyclerView.Adapter<CardHolder> {
-        private final LayoutInflater mInflater;
-        private Map<String, Song> songs;
-        private List<String> keys;
-
-        public CardAdapter() {
-            mInflater = LayoutInflater.from(getActivity());
-        }
-
-        public void setSongs(Map<String, Song> songs) {
-            Log.v(LOG_TAG, "setTracks www - songs.size()=" + songs.size());
-            this.songs = songs;
-            keys = new ArrayList<>();
-            keys.addAll(songs.keySet());
-        }
-
-        @Override
-        public CardHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
-            return new CardHolder(mInflater.inflate(R.layout.card_song, viewGroup, false));
-        }
-
-        @Override
-        public void onBindViewHolder(CardHolder holder, int position) {
-            Log.v(LOG_TAG, "onBindViewHolder");
-            if (songs == null || holder == null) {
-                return;
-            }
-
-            //String key = keys.get(position);
-            Log.v(LOG_TAG, "song key " + key);
-
-            Song song = songs.get(key);
-            if (song != null) {
-                Log.v(LOG_TAG, "song title: '" + song.getSongTitle() + "'");
-                holder.setSong(song);
-                if (song.getAlbumArtUrl() != null) {
-                    holder.bind(position);
-                    // substitute default image from dar.fm with droid.fm logo
-                    if (song.getAlbumArtUrl().indexOf("dar.fm") != -1) {
-                        holder.mAlbumImage.setImageResource(R.drawable.droid_fm);
-                    } else {
-                        Picasso.with(getActivity()).setIndicatorsEnabled(true);
-                        Picasso.with(getActivity())
-                                .load(song.getAlbumArtUrl())
-                                .placeholder(R.drawable.droid_fm)
-                                .error(R.drawable.droid_fm)
-                                .fit()
-                                .into(holder.mAlbumImage);
-                    }
-                } else {
-                    PlayerManager.getInstance().getRadioStationsClient().doSongArt(
-                            song.getSongArtist(),
-                            song.getSongTitle(),
-                            Constants.ALBUM_ART_IMAGE_RESOLUTION,
-                            key
-                    );
-                }
-            }
-
-        }
-
-        @Override
-        public int getItemCount() {
-            if (songs != null) {
-                return songs.size();
-            } else {
-                return 0;
-            }
-        }
-    }
-
-    private class CardHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private final ImageView mAlbumImage;
-        private final TextView itemSongTitle;
-        private final TextView itemArtistName;
-        private final TextView itemStationCallSign;
-        private Song song;
-        private int mAlbumPosition;
-        private boolean cardClicked = false;
-
-        public CardHolder(View itemView) {
-            super(itemView);
-            itemView.setOnClickListener(this);
-            mAlbumImage = (ImageView) itemView.findViewById(R.id.album_art);
-            itemSongTitle = (TextView) itemView.findViewById(R.id.song_title);
-            itemArtistName = (TextView) itemView.findViewById(R.id.artist_name);
-            itemStationCallSign = (TextView) itemView.findViewById(R.id.station_call_sign);
-
-        }
-
-        public void setSong(Song song) {
-            this.song = song;
-        }
-
-        public void bind(int position) {
-            if (song != null) {
-                Log.v(LOG_TAG, "bind , mAlbumImage.setTransitionName: " + song.getUberUrl().getUrl());
-                Picasso.with(getActivity()).load(song.getUberUrl().getUrl()).into(mAlbumImage);
-                mAlbumImage.setTransitionName(song.getUberUrl().getUrl());
-                mAlbumImage.setTag(song.getUberUrl().getUrl());
-            }
-            mAlbumPosition = position;
-        }
-
-        @Override
-        public void onClick(View v) {
-            //parentActivity.instantiateTopTracksFragment(itemArtist);
-            //parentActivity.onSongSelected(song, itemAlbumArt);
-
-            // to prevent user from double clicking and start activity twice
-            if (!cardClicked) {
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra(EXTRA_STARTING_ALBUM_POSITION, mAlbumPosition);
-
-                Log.v(LOG_TAG, "onClick , mAlbumImage.getTransitionName(): " + mAlbumImage.getTransitionName());
-
-                getActivity().startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(getActivity(),
-                        mAlbumImage, mAlbumImage.getTransitionName()).toBundle());
-                cardClicked = true;
-            }
-        }
-    }*/
-
     public void setSongs(Map<String, Song> songs) {
         Log.v(LOG_TAG, "setSongs : " + this.toString());
 
-//        this.songs = songs;
+        //this.songs = songs;
         if (genresListAdapter == null) {
-//            genresListAdapter = new CardAdapter();
             genresListAdapter = new GenresListAdapter((MainActivity) getActivity());
-//            genresListAdapter = new GenresListAdapter();
         }
-//        genresListAdapter.setSongs(this.songs );
         genresListAdapter.notifyDataSetChanged();
     }
 
-/*
-    public Map<String, Song> getSongs() {
-        return songs;
-    }
-*/
 
     @Subscribe
     public void onSongArtEvent(SongArtEvent event) {
-        Log.v(LOG_TAG, "onSongArtEvent : " + this.toString());
+        //Log.v(LOG_TAG, "onSongArtEvent : " + this.toString());
 
         SongArtResponse songArtResponse = event.response;
         SongArtResponse.SongArt songArt = songArtResponse.getSongArt();
-        Log.v(LOG_TAG, "onSongArtEvent - song url : " + songArt.getArtUrl());
+        //Log.v(LOG_TAG, "onSongArtEvent - song url : " + songArt.getArtUrl());
 
         String songArtKey = songArtResponse.getKey();
 
         int position = songArtResponse.getPosition();
 
-//                Log.v(LOG_TAG, "onSongArtEvent - song key : " + songArtKey);
-        Log.v(LOG_TAG, "onSongArtEvent - song position : " + position);
-        Log.v(LOG_TAG, "onSongArtEvent - songArtKey : " + songArtKey);
-        Log.v(LOG_TAG, "onSongArtEvent - songs.size: " + PlayerManager.getInstance().getSongsByGenre(key).size());
+        //Log.v(LOG_TAG, "onSongArtEvent - song key : " + songArtKey);
+        //Log.v(LOG_TAG, "onSongArtEvent - song position : " + position);
+        //Log.v(LOG_TAG, "onSongArtEvent - songArtKey : " + songArtKey);
+        //Log.v(LOG_TAG, "onSongArtEvent - songs.size: " + PlayerManager.getInstance().getSongsByGenre(key).size());
 
         if (PlayerManager.getInstance().getSongsByGenre(key) != null && position < PlayerManager.getInstance().getSongsByGenre(key).size()) {
             Song song = PlayerManager.getInstance().getSongsByGenre(key).get(position);
 
-            Log.v(LOG_TAG, "onSongArtEvent - song getSongTitle : " + song.getSongTitle());
+            //Log.v(LOG_TAG, "onSongArtEvent - song getSongTitle : " + song.getSongTitle());
 
             if (song.getSongTitle().equals(songArtKey)) {
                 if (song != null) {
@@ -612,18 +284,20 @@ public class GenresFragment extends Fragment {
         }
 
         // check for a valid Album Art URL
-//        if (albumArtUrl == null) {
-//            if (artist.indexOf(songArt.getArtist()) != -1) {
-//                albumArtUrl = songArt.getArtUrl();
-//                Log.v(LOG_TAG, "bus - unregister: " + this.toString());
-//                // register with the bus to receive events
-//                BusProvider.getInstance().unregister(this);
-//                if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
-//                    Picasso.with(getActivity())
-//                            .load(albumArtUrl)
-//                            .into(mAlbumCover);
-//                }
-//            }
-//        }
+        /*
+        if (albumArtUrl == null) {
+            if (artist.indexOf(songArt.getArtist()) != -1) {
+                albumArtUrl = songArt.getArtUrl();
+                Log.v(LOG_TAG, "bus - unregister: " + this.toString());
+                // register with the bus to receive events
+                BusProvider.getInstance().unregister(this);
+                if (Patterns.WEB_URL.matcher(songArt.getArtUrl()).matches()) {
+                    Picasso.with(getActivity())
+                            .load(albumArtUrl)
+                            .into(mAlbumCover);
+                }
+            }
+        }
+        */
     }
 }

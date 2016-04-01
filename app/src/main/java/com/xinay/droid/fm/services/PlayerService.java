@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -24,6 +25,8 @@ import android.widget.RemoteViews;
 
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
+import com.xinay.droid.fm.DroidfmAppWidgetProvider;
+import com.xinay.droid.fm.MainActivity;
 import com.xinay.droid.fm.PlayerManager;
 import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.model.Song;
@@ -36,6 +39,7 @@ import org.parceler.Parcel;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 
 /**
@@ -197,9 +201,80 @@ public class PlayerService extends Service implements
         mediaPlayer.start();
     }
 
+    private Bitmap widgetAlbumArt;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.v(LOG_TAG, "onStartCommand()");
+
+        Song song = PlayerManager.getInstance().getCurrentSong();
+
+        if (song != null) {
+            String albumArtUrl = song.getAlbumArtUrl();
+            widgetAlbumArt = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.droid_fm_thumbnail);
+
+            if (albumArtUrl != null && albumArtUrl.indexOf("dar.fm") == -1) {
+                Picasso.with(getApplicationContext())
+                        .load(albumArtUrl)
+                        .resize(75, 75)
+                        .into(new Target() {
+                            @Override
+                            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+                                widgetAlbumArt = bitmap;
+                            }
+
+                            @Override
+                            public void onBitmapFailed(Drawable errorDrawable) {
+                                // Nothing else to do in this case
+                            }
+
+                            @Override
+                            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                                // Nothing else to do in this case
+                            }
+                        });
+            }
+        }
+
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this
+                .getApplicationContext());
+
+        // Intent may be null, so check for it
+        int[] allWidgetIds = (intent != null) ? intent
+                .getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) : null;
+
+        if (allWidgetIds != null) {
+            for (int widgetId : allWidgetIds) {
+                Log.v(LOG_TAG, "allWidgetIds.length: " + allWidgetIds.length);
+                // Get the layout for the App Widget and attach an on-click listener
+                // to the button
+                RemoteViews remoteViews = new RemoteViews(this
+                        .getApplicationContext().getPackageName(),
+                        R.layout.player_widget);
+                // Set the texts and album Art on widgets
+                if (song != null) {
+                    remoteViews.setTextViewText(R.id.song_title, song.getSongTitle());
+                    remoteViews.setTextViewText(R.id.artist_name, song.getSongArtist());
+                    remoteViews.setTextViewText(R.id.station_call_sign, song.getCallSign());
+                    remoteViews.setImageViewBitmap(R.id.album_art, widgetAlbumArt);
+                }
+
+                // Register an onClickListener
+                Intent clickIntent = new Intent(this.getApplicationContext(),
+                        DroidfmAppWidgetProvider.class);
+
+                clickIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                        allWidgetIds);
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, clickIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+                remoteViews.setOnClickPendingIntent(R.id.play_button, pendingIntent);
+                appWidgetManager.updateAppWidget(widgetId, remoteViews);
+            }
+            stopSelf();
+        }
+
         try {
             RegisterRemoteClient();
             newNotification();

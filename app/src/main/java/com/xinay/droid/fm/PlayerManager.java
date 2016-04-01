@@ -139,14 +139,6 @@ public class PlayerManager {
         for (int i = 0; i < GENRES_MAP_KEYS.length; i++) {
             radioStationsClient.doTopSongs(GENRES_MAP_KEYS[i]);
         }
-
-//        radioStationsClient.doTopSongs("Music");
-//        radioStationsClient.doTopSongs("Rock");
-//        radioStationsClient.doTopSongs("Hip Hop");
-//        radioStationsClient.doTopSongs("80");
-//        radioStationsClient.doTopSongs("90");
-//        radioStationsClient.doTopSongs("00");
-//        radioStationsClient.doTopSongs("Classical");
     }
 
     public void onPlayerPlayPause() {
@@ -168,36 +160,16 @@ public class PlayerManager {
         }
     }
 
-//    public Song onPlayerNext() {
-//        Log.v(LOG_TAG, "onPlayerNext");
-//        if (playerService != null) {
-//            playerService.next();
-//        }
-//        trackIndex++;
-//        if (trackIndex >= songs.size()) trackIndex = 0;
-//        return songs.get(trackIndex);
-//    }
-
-//    public Song onPlayerPrev() {
-//        Log.v(LOG_TAG, "onPlayerPrev");
-//        if (playerService != null) {
-//            playerService.prev();
-//        }
-//        trackIndex--;
-//        if (trackIndex < 0) trackIndex = songs.size() - 1;
-//        return songs.get(trackIndex);
-//    }
-
 
     // Getters & Setters
 
     public void setSongs(List<Song> songs) {
         Log.v(LOG_TAG, "setTracks www - songs.size()=" + songs.size());
         this.songs = songs;
-//        if (playerService != null) {
-//            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
-//            playerService.setList(songs);
-//        }
+        //if (playerService != null) {
+        //    Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
+        //    playerService.setList(songs);
+        //}
 
         if (currentSong == null) currentSong = songs.get(0);
     }
@@ -222,14 +194,6 @@ public class PlayerManager {
         this.currentSong = currentSong;
     }
 
-    //    public Map<String, List<Song>> getGenresMapSongs() {
-//        return genresMapSongs;
-//    }
-//
-//    public void setGenresMapSongs(Map<String, List<Song>> genresMapSongs) {
-//        this.genresMapSongs = genresMapSongs;
-//    }
-
     public void setSongsByGenre(String key, List<Song> songs) {
         for (Song song : songs) {
             song.setGroupKey(key);
@@ -239,11 +203,6 @@ public class PlayerManager {
         genresMapSongs.get(key).addAll(songs);
 
         Log.v(LOG_TAG, "genresMapSongs.size: " + genresMapSongs.get(key).size());
-
-//        if (playerService != null) {
-//            Log.v(LOG_TAG, "setSongs - songs.size()=" + songs.size());
-//            playerService.setList(songs);
-//        }
 
         if (currentSong == null) currentSong = songs.get(0);
     }
@@ -282,35 +241,6 @@ public class PlayerManager {
             //playerManager.setSongs(topSongsResponse.getSongs());
 
             setSongsByGenre(key, topSongsResponse.getSongs());
-
-
-//            GenresFragment fragment = genresFragmentMap.get(key);
-//            if (fragment != null) {
-//                Log.v(LOG_TAG, "GenresFragment: " + fragment.toString());
-//
-//                List<Song> songs = topSongsResponse.getSongs();
-//
-//                playerManager.setSongs(songs);
-//
-//                Map<String, Song> songMap = new HashMap<>();
-//                int idx = 0;
-//                for (Song song : songs) {
-//                    String songKey = fragment.toString() + idx;
-//                    Log.v(LOG_TAG, "songKey: " + songKey);
-//                    songMap.put(songKey, song);
-//                    idx++;
-//                }
-//                fragment.setSongs(songMap);
-//            }
-
-            //playerFragmentsList = new ArrayList<PlayerFragment>();
-
-//            mViewPager = (ViewPager) findViewById(R.id.viewpager);
-//            mPagerAdapter = new PlayNowSlidePagerAdapter(getFragmentManager());
-//            mViewPager.setAdapter(mPagerAdapter);
-
-//        } else {
-//            Toast.makeText(this, String.format(getResources().getString(R.string.search_results_hint)), Toast.LENGTH_LONG).show();
         }
     }
 }

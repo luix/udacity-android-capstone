@@ -105,16 +105,6 @@ public class SearchFragment extends Fragment {
         BusProvider.getInstance().unregister(this);
     }
 
-//    @Override
-//    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-//        super.onRestoreInstanceState(savedInstanceState);
-//
-//        // Retrieve list state and list/item positions
-//        //mListState = savedInstanceState.getParcelable(Constants.SEARCH_RESULTS_INSTANCE_STATE);
-//        wrappedPlaylist = savedInstanceState.getParcelable(KEY_ARTIST_LIST);
-//        playlist = Parcels.unwrap(wrappedPlaylist);
-//    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -213,8 +203,6 @@ public class SearchFragment extends Fragment {
         mProgressBar.setVisibility(View.GONE);
 
         if (resultsSize > 0) {
-//            searchResultsListAdapter.setPlaylist(mSongs);
-            //searchResultsListAdapter.setArtists(mArtists);
             searchResultsListAdapter.notifyDataSetChanged();
         } else {
             Toast.makeText(getActivity(), String.format(getResources().getString(R.string.no_results_found), searchQuery), Toast.LENGTH_SHORT).show();
@@ -234,22 +222,11 @@ public class SearchFragment extends Fragment {
         mProgressBar.setVisibility(View.GONE);
 
         if (resultsSize > 0) {
-//            mArtists = apiResponse.getArtists();
-//            searchResultsListAdapter.setArtists(mArtists);
             searchResultsListAdapter.notifyDataSetChanged();
         } else {
             Toast.makeText(getActivity(), String.format(getResources().getString(R.string.no_results_found), searchQuery), Toast.LENGTH_SHORT).show();
             Toast.makeText(getActivity(), String.format(getResources().getString(R.string.search_results_hint)), Toast.LENGTH_LONG).show();
         }
-//        mResultsFragment = ResultsFragment.newInstance();
-//        mResultsFragment.setImageData(ImageDataUtility.getImageDataArrayList(event.result));
-//        FragmentTransaction transaction = mFragmentManager.beginTransaction();
-//        transaction.setCustomAnimations(R.animator.slide_in_right, R.animator.slide_out_left);
-//        transaction.remove(mConfigFragment);
-//        transaction.remove(mSearchFragment);
-//        transaction.replace(R.id.main_container, mResultsFragment, "FRAG_RESULTS");
-//        transaction.addToBackStack("FRAG_RESULTS");
-//        transaction.commit();
     }
 
     private void searchForArtist(String searchKey) {
@@ -261,39 +238,6 @@ public class SearchFragment extends Fragment {
 
         //RadioStationsClient client = new RadioStationsClient();
         mRadioClient.doTopSongs("Music");
-
-        /*
-        ServiceHelper.get().search(searchKey, Constants.TYPE_ARTISTS, new Callback<ArtistSearchResponse>() {
-
-            @Override
-            public void success(ArtistSearchResponse apiResponse, Response response) {
-                Log.v(LOG_TAG, "success");
-
-                int resultsSize = apiResponse.getArtists().getItems().size();
-
-                Log.v(LOG_TAG, "artists size : " + resultsSize);
-
-                mProgressBar.setVisibility(View.GONE);
-
-                if (resultsSize > 0) {
-                    mArtists = apiResponse.getArtists();
-                    searchResultsListAdapter.setArtists(mArtists);
-                    searchResultsListAdapter.notifyDataSetChanged();
-                } else {
-                    Toast.makeText(getActivity(), String.format(getResources().getString(R.string.no_results_found), theSearchKey), Toast.LENGTH_SHORT).show();
-                    Toast.makeText(getActivity(), String.format(getResources().getString(R.string.search_results_hint)), Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.v(LOG_TAG, "failure");
-                mProgressBar.setVisibility(View.GONE);
-                Log.v(LOG_TAG, "error message: " + error.getMessage());
-                Toast.makeText(getActivity(), error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
-        */
     }
 
 

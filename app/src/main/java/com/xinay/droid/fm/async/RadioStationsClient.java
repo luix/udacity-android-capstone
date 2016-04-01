@@ -102,9 +102,9 @@ public class RadioStationsClient {
             @Override
             public void onResponse(Response<SongArtResponse> response) {
 
-                Log.v(LOG_TAG, "onResponse code: " + response.code());
-                Log.v(LOG_TAG, "onResponse setKey: " + key);
-                Log.v(LOG_TAG, "onResponse position: " + position);
+                //Log.v(LOG_TAG, "onResponse code: " + response.code());
+                //Log.v(LOG_TAG, "onResponse setKey: " + key);
+                //Log.v(LOG_TAG, "onResponse position: " + position);
 
                 SongArtResponse songArtResponse = response.body();
                 songArtResponse.setKey(key);
