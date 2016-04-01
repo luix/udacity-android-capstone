@@ -15,6 +15,16 @@ android {
 
     }
 
+    signingConfigs {
+        release {
+            //storeFile file("myreleasekey.keystore")
+            storeFile file("mykeystorefile.jks")
+            storePassword "password"
+            keyAlias "MyReleaseKey"
+            keyPassword "password"
+        }
+    }
+
     productFlavors {
         // Define separate dev and prod product flavors.
         dev {
@@ -33,6 +43,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

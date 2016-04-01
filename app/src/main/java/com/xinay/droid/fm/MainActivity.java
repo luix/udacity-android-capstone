@@ -5,11 +5,15 @@ import android.app.ActivityOptions;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.LoaderManager;
 import android.app.SearchManager;
 import android.app.SharedElementCallback;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Build;
@@ -38,6 +42,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.SearchView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
@@ -49,11 +54,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.squareup.otto.Subscribe;
 import com.xinay.droid.fm.bus.BusProvider;
+import com.xinay.droid.fm.database.StationsTable;
 import com.xinay.droid.fm.event.TopSongsEvent;
 import com.xinay.droid.fm.model.Song;
 import com.xinay.droid.fm.model.Station;
 import com.xinay.droid.fm.model.TopSongsResponse;
 import com.xinay.droid.fm.model.Track;
+import com.xinay.droid.fm.provider.RadioStationsContentProvider;
 import com.xinay.droid.fm.services.PlayerService;
 import com.xinay.droid.fm.util.Utilities;
 
@@ -75,7 +82,8 @@ public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         SearchFragment.OnFragmentInteractionListener,
-        GenresFragment.OnFragmentInteractionListener {
+        GenresFragment.OnFragmentInteractionListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
@@ -84,6 +92,9 @@ public class MainActivity extends AppCompatActivity implements
     private Bundle mTmpReenterState;
 
     private boolean mIsDetailsActivityStarted;
+
+    // private Cursor cursor;
+    private SimpleCursorAdapter adapter;
 
     private final SharedElementCallback mCallback = new SharedElementCallback() {
         @Override
@@ -193,8 +204,18 @@ public class MainActivity extends AppCompatActivity implements
             playerManager = PlayerManager.getInstance();
         }
 
-
         //initGenres();
+
+        // Fields from the database (projection)
+        // Must include the _id column for the adapter to work
+        String[] from = new String[] { StationsTable.COLUMN_SUMMARY };
+        // Fields on the UI to which we map
+        int[] to = new int[] { R.id.station_call_sign };
+
+        getLoaderManager().initLoader(0, null, this);
+        adapter = new SimpleCursorAdapter(this, R.layout.activity_screen_slide, null, from,
+                to, 0);
+
         Log.v(LOG_TAG, "playerManager.init()...");
         playerManager.init();
 
@@ -395,6 +416,25 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(LOG_TAG, "onStationSelected - put extra: station call id=" + station.getStationId());
 
         FragmentManager fragmentManager = getFragmentManager();
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String[] projection = { StationsTable.COLUMN_ID, StationsTable.COLUMN_SUMMARY };
+        CursorLoader cursorLoader = new CursorLoader(this,
+                RadioStationsContentProvider.CONTENT_URI, projection, null, null, null);
+        return cursorLoader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        // data is not available anymore, delete reference
+        adapter.swapCursor(null);
     }
 
     private class GenresFragmentPagerAdapter extends FragmentStatePagerAdapter {
