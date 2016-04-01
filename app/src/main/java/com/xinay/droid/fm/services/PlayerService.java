@@ -8,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -21,6 +22,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+import com.xinay.droid.fm.PlayerManager;
 import com.xinay.droid.fm.R;
 import com.xinay.droid.fm.model.Song;
 import com.xinay.droid.fm.model.Track;
@@ -232,8 +236,13 @@ public class PlayerService extends Service implements
         return START_STICKY;
     }
 
+    private Bitmap albumArt;
+
     private void newNotification() {
         Log.v(LOG_TAG, "newNotification()");
+        if (song == null) {
+            song = PlayerManager.getInstance().getCurrentSong();
+        }
         String songName = song.getSongTitle();
         String albumName = song.getSongArtist();
         RemoteViews simpleContentView = new RemoteViews(getApplicationContext().getPackageName(),R.layout.notification_layout);
@@ -251,7 +260,31 @@ public class PlayerService extends Service implements
 
         try{
             String albumArtUrl = song.getAlbumArtUrl();
-            Bitmap albumArt = BitmapFactory.decodeResource(getResources(), R.drawable.droid_fm);
+
+            albumArt = BitmapFactory.decodeResource(getResources(), R.drawable.droid_fm);
+
+            if (albumArtUrl.indexOf("dar.fm") == -1) {
+                Picasso.with(getApplicationContext())
+                        .load(albumArtUrl)
+                        .resize(100, 100)
+                        .into(new Target() {
+                            @Override
+                            public void onBitmapLoaded (final Bitmap bitmap, Picasso.LoadedFrom from){
+                                albumArt = bitmap;
+                            }
+
+                            @Override
+                            public void onBitmapFailed(Drawable errorDrawable) {
+                                // Nothing else to do in this case
+                            }
+
+                            @Override
+                            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                                // Nothing else to do in this case
+                            }
+                        });
+            }
+
             if(albumArt != null){
                 notification.contentView.setImageViewBitmap(R.id.imageViewAlbumArt, albumArt);
                 notification.bigContentView.setImageViewBitmap(R.id.imageViewAlbumArt, albumArt);

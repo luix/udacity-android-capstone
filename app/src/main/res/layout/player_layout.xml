@@ -26,6 +26,9 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/album_art"
             android:layout_centerHorizontal="true"
+            android:focusable="true"
+            android:nextFocusDown="@+id/artist_name"
+            android:nextFocusUp="@+id/adView"
             android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/pink_500" />
@@ -36,6 +39,9 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/song_title"
             android:layout_centerHorizontal="true"
+            android:focusable="true"
+            android:nextFocusDown="@+id/station_id"
+            android:nextFocusUp="@id/song_title"
             android:text="Medium Text"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@color/white" />
@@ -46,6 +52,9 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/artist_name"
             android:layout_centerHorizontal="true"
+            android:focusable="true"
+            android:nextFocusDown="@+id/play_pause_button"
+            android:nextFocusUp="@id/artist_name"
             android:text="Small Text"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/grey_cb" />
@@ -56,6 +65,10 @@
             android:layout_height="54dp"
             android:layout_below="@+id/station_id"
             android:layout_centerHorizontal="true"
+            android:focusable="true"
+            android:nextFocusDown="@id/adView"
+            android:nextFocusUp="@id/station_id"
+            android:contentDescription="@string/play"
             android:src="@android:drawable/ic_media_play" />
 
         <com.google.android.gms.ads.AdView
@@ -65,6 +78,9 @@
             android:layout_below="@+id/play_pause_button"
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
+            android:focusable="true"
+            android:nextFocusDown="@id/song_title"
+            android:nextFocusUp="@id/play_pause_button"
             ads:adSize="BANNER"
             ads:adUnitId="@string/banner_ad_unit_id">
         </com.google.android.gms.ads.AdView>

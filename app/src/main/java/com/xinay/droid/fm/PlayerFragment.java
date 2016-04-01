@@ -215,6 +215,11 @@ public class PlayerFragment extends Fragment {
             mSongTitle.setText(mSong.getSongTitle());
             mArtistName.setText(mSong.getSongArtist());
             mStationId.setText(mSong.getCallSign());
+
+            // Add Content Descriptions for Accessibility
+            mSongTitle.setContentDescription(mSong.getSongTitle());
+            mArtistName.setContentDescription(mSong.getSongArtist());
+            mStationId.setContentDescription(mSong.getCallSign());
         }
 
         mAlbumImage = (ImageView) rootView.findViewById(R.id.album_art);

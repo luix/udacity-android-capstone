@@ -9,14 +9,14 @@
         android:id="@+id/artist_thumbnail"
         android:layout_width="@dimen/thumbnail_width"
         android:layout_height="@dimen/thumbnail_height"
-        android:layout_alignParentLeft="true"
-        android:layout_marginRight="@dimen/thumbnail_margin"/>
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="@dimen/thumbnail_margin"/>
 
     <TextView
         android:id="@+id/artist_name"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_toRightOf="@+id/artist_thumbnail"
+        android:layout_toEndOf="@+id/artist_thumbnail"
         android:gravity="center_vertical"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Medium Text" />

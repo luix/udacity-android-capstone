@@ -26,9 +26,15 @@
     <string name="analytics_tracking_id">UA-75616877-1</string>
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 
+    <string name="title_activity_search_results">SearchResultsActivity</string>
+
+    <string name="widget_song_title">Man in the Mirror</string>
+    <string name="widget_artist_name">Michael Jackson</string>
+    <string name="widget_station_call_sign">Mix 95.1</string>
+
+
     <!-- TODO: Remove or change these placeholder texts -->
     <string name="hello_world">Hello world!</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_search_results">SearchResultsActivity</string>
 
 </resources>

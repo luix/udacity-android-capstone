@@ -40,7 +40,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/album_art"
+            android:layout_toEndOf="@id/album_art"
             android:layout_marginTop="@dimen/widget_margin"
             android:text="@string/hello_world"
             android:textAppearance="?android:attr/textAppearance"
@@ -65,7 +65,7 @@
             android:id="@+id/station_call_sign"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/album_art"
+            android:layout_toEndOf="@id/album_art"
             android:layout_marginBottom="@dimen/widget_margin"
             android:layout_alignParentBottom="true"
             android:paddingStart="@dimen/widget_padding"
@@ -93,7 +93,7 @@
             android:paddingStart="@dimen/widget_padding"
             android:paddingEnd="@dimen/widget_padding"
             android:src="@drawable/droid_fm"
-            android:layout_alignParentLeft="true"/>
+            android:layout_alignParentStart="true"/>
 
 
         <LinearLayout
@@ -101,14 +101,15 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_centerVertical="true"
-            android:layout_toRightOf="@id/album_art"
+            android:layout_toEndOf="@id/album_art"
             >
 
             <TextView
+                android:id="@+id/song_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:contentDescription="@string/hello_world"
-                android:text="@string/hello_world"
+                android:contentDescription="@string/widget_song_title"
+                android:text="@string/widget_song_title"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@color/pink_500"
                 />
@@ -117,11 +118,11 @@
                 android:id="@+id/artist_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:contentDescription="@string/hello_world"
+                android:contentDescription="@string/widget_artist_name"
                 android:paddingStart="@dimen/widget_padding"
                 android:paddingEnd="@dimen/widget_padding"
                 android:textColor="@color/white"
-                android:text="@string/hello_world"
+                android:text="@string/widget_artist_name"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 />
 
@@ -133,7 +134,7 @@
                 android:paddingStart="@dimen/widget_padding"
                 android:paddingEnd="@dimen/widget_padding"
                 android:textColor="@color/grey_aa"
-                android:text="@string/hello_world"
+                android:text="@string/widget_station_call_sign"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
         </LinearLayout>
@@ -144,7 +145,8 @@
             android:layout_width="@dimen/widget_button_width"
             android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
-            android:background="@android:color/holo_orange_dark"
+            android:contentDescription="@string/play"
+            android:background="@android:color/background_dark"
             android:src="@android:drawable/ic_media_play" />
 
     </RelativeLayout>

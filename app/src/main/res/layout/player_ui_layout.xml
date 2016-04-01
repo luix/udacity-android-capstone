@@ -54,7 +54,6 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Small Text"
         android:layout_below="@+id/seek_bar"
-        android:layout_alignLeft="@+id/seek_bar"
         android:layout_alignStart="@+id/seek_bar" />
 
     <TextView
@@ -64,7 +63,6 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Small Text"
         android:layout_alignBottom="@+id/time_ellapsed"
-        android:layout_alignRight="@+id/seek_bar"
         android:layout_alignEnd="@+id/seek_bar" />
 
     <ImageButton
@@ -72,7 +70,6 @@
         android:layout_width="54dp"
         android:layout_height="54dp"
         android:layout_below="@+id/time_ellapsed"
-        android:layout_alignLeft="@+id/time_ellapsed"
         android:layout_alignStart="@+id/time_ellapsed"
         android:layout_marginTop="27dp"
         android:src="@android:drawable/ic_media_previous" />
@@ -82,6 +79,7 @@
         android:layout_width="54dp"
         android:layout_height="54dp"
         android:layout_alignBottom="@+id/prev_button"
+        android:contentDescription="@string/play"
         android:layout_centerHorizontal="true"
         android:src="@android:drawable/ic_media_play" />
 
@@ -90,7 +88,6 @@
         android:layout_width="54dp"
         android:layout_height="54dp"
         android:layout_alignBottom="@+id/play_pause_button"
-        android:layout_alignRight="@+id/time_total"
         android:layout_alignEnd="@+id/time_total"
         android:src="@android:drawable/ic_media_next" />
 

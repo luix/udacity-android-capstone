@@ -41,7 +41,7 @@
                     android:id="@+id/btnDelete"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
-                    android:layout_marginLeft="5dp"
+                    android:layout_marginStart="5dp"
                     android:background="@drawable/ic_action_remove" />
             </LinearLayout>
 
@@ -68,6 +68,7 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:layout_margin="5dp"
+                    android:contentDescription="@string/pause"
                     android:background="@drawable/ic_action_pause" />
 
                 <Button
@@ -75,6 +76,7 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:layout_margin="5dp"
+                    android:contentDescription="@string/play"
                     android:background="@drawable/ic_action_play"
                     android:visibility="gone" />
             </LinearLayout>

@@ -10,14 +10,14 @@
         android:id="@+id/album_thumbnail"
         android:layout_width="@dimen/thumbnail_width"
         android:layout_height="@dimen/thumbnail_height"
-        android:layout_alignParentLeft="true"
-        android:layout_marginRight="@dimen/thumbnail_margin"/>
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="@dimen/thumbnail_margin"/>
 
     <TextView
         android:id="@+id/track_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/album_thumbnail"
+        android:layout_toEndOf="@+id/album_thumbnail"
         android:textAppearance="?android:attr/textAppearanceMedium"
         tools:text="Track Title" />
 
@@ -25,7 +25,7 @@
         android:id="@+id/album_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/album_thumbnail"
+        android:layout_toEndOf="@+id/album_thumbnail"
         android:layout_below="@+id/track_title"
         android:textAppearance="?android:attr/textAppearanceSmall"
         tools:text="Album Name" />

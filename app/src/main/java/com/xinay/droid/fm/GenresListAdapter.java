@@ -118,13 +118,13 @@ public class GenresListAdapter extends RecyclerView.Adapter<GenresListAdapter.Vi
                 viewHolder.mAlbumPosition = position;
                 // substitute default image from dar.fm with droid.fm logo
                 if (song.getAlbumArtUrl().indexOf("dar.fm") != -1) {
-                    viewHolder.itemAlbumArt.setImageResource(R.drawable.droid_fm);
+                    viewHolder.itemAlbumArt.setImageResource(R.drawable.droid_fm_thumbnail);
                 } else {
                     Picasso.with(context).setIndicatorsEnabled(true);
                     Picasso.with(context)
                             .load(song.getAlbumArtUrl())
-                            .placeholder(R.drawable.droid_fm)
-                            .error(R.drawable.droid_fm)
+                            .placeholder(R.drawable.droid_fm_thumbnail)
+                            .error(R.drawable.droid_fm_thumbnail)
                             .fit()
                             .into(viewHolder.itemAlbumArt);
                 }
